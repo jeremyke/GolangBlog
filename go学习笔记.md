@@ -127,4 +127,4 @@ func main()  {
 
 ## 3. 数据类型
 
-![image](https://github.com/jeremyke/goStudy/pic/18100630282833.png)
+![image](https://github.com/jeremyke/goStudy/blob/master/pic/18100630282833.png)
