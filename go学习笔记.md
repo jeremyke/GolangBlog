@@ -158,7 +158,7 @@ func (m 自定义类型) method2(参数列表)返回值列表{
 - 总结：
 ```text
 （1）接口里面的所有方法都没有方法体，即接口的方法是没有实现的，接口体现了程序设计的多态和高内聚低耦合的思想。
-（2）Golang的接口不需要显示实现。只要一个变量，含有类型的所有方法，那么这个变量就实现了这个接口。因此接口中没有implement关键字。
+（2）Golang的接口不需要显示实现。只要一个变量，含有接口的所有方法，那么这个变量就实现了这个接口。因此接口中没有implement关键字。
 ```
 
 #### n.2 注意事项和细节说明
@@ -309,4 +309,63 @@ fmt.Println(t)
 } 
 //221
 ```
+
+#### n.3 接口的实践
+> 参考chapter11/sliceorder
+
+#### n.3 接口实现和继承的比较
+- 代码案例
+```go
+package main
+
+import (
+	"fmt"
+)
+
+type Monkey struct {
+	Name string
+}
+
+func (this *Monkey)climb()  {
+	fmt.Println(this.Name,"天生会爬树...")
+}
+
+type Bird interface {
+	Fly()
+}
+
+type SonMonkey struct {
+	Monkey
+}
+
+func (this *SonMonkey) Fly()  {
+	fmt.Println(this.Name, " 通过实现，会飞翔...")
+}
+
+
+func main()  {
+	xiaoMonkey := SonMonkey{Monkey{Name:"孙悟空"}}
+	xiaoMonkey.climb()
+	xiaoMonkey.Fly()
+}
+```
+- 小结
+```text
+（1）当A结构体继承了B结构体，就自动继承了B结构体的字段和方法，并且可以直接使用。
+（2）当A结构体需要扩展功能，同时不希望去破坏继承关系，则可以去实现某个接口即可。因此可以这么认为：实现接口是对继承接口的补充。
+```
+
+- 实现接口 vs 继承
+```text
+（1）实现接口和继承解决的问题不一样：
+    继承的价值在于：解决代码的复用性和可维护性。
+    实现接口的价值在于：设计好各种规范，让自定义的类型去实现具体方法。
+（2）接口比继承更加灵活：
+    继承满足is - a 关系，而接口只需满足 like -a 关系。
+（3）接口在一定程度上实现代码解耦:
+```
+
+-------------------p225-------------20200119---------------
+
+
 
