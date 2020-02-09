@@ -253,11 +253,69 @@ str := "hello" +
 
 fmt.Println(str)
 ```
+#### 3.6 基本数据类型的默认值
 
+|数据类型|默认值（零值）|
+|-:|:-:|
+|整形|0|
+|浮点型|0|
+|字符串型|""|
+|布尔型|false|
 
+>fmt.Printf("a=%v",a)//%v指按变量的值输出
 
+#### 3.7 基本数据类型的转换
 
+###### 3.7.1 基本介绍
 
+Golang中在不同类型的变量之间赋值时需要显示转换，也就是说：golang的数据类型不能自动转换。
+
+###### 3.7.2 基本语法
+
+表达式: T(V) 将值V转换为类型T
+T：就是数据类型，比如int32,float64
+V：需要转换的变量
+
+```go
+func main(){
+  var i int32 = 34
+  var j float32 = float32(i)
+  fmt.Prinf("i=%v j=%v",i,j)
+}
+```
+**细节说明**
+
+1) Go中，数据类型的转换可以从表示小的范围-->表示大的范围，也可以从范围大的-->范围小的
+2) 被转换的是变量存储的数据（即值），变量本身的数据类型并没有变化。
+3) 在转换中，比如将int64转为int8，编译时不会报错，只是转换的结果按溢出处理，和我们期望的结果不一样，所以需要谨慎转换。
+
+#### 3.8 基本数据类型和string的转换
+
+###### 3.8.1 基本数据类型-->string类型
+
+方式一：fmt.Sprintf("%参数"，表达式)（比较常用）
+>1.参数需要和表达式的数据类型相匹配（可以参考手册插叙）
+>2.fmt.Sprintf()会返回转换后的字符串
+
+方式二：使用strconv包的函数
+
+func FormatBool(b bool) string
+func FormatFloat(f[被转化的变量] float64,fmt[格式] byte,prec[小数位数],bitSize[小数是float64] int) string
+func FormatInt(i int64,base【进制】 int)string
+func FormatUint(uint64,base int) string
+func Itoa(a int) string
+
+###### 3.8.2 string类型-->基本数据类型
+
+使用strconv包的函数:
+
+func ParseBool(str string)(value bool,err error)
+
+func ParseFloat(s string,bitSize int)(f float64,err error)
+
+func ParseInt(s string,base int,bitSize int)(i int64,err error)
+
+func ParseUint(s string,b int,bitSize int)(n uint64,err error)
 
 
 
