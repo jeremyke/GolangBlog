@@ -227,7 +227,7 @@ func main(){
 
 #### 3.4 布尔类型（bool）
 
-####### 3.4.1 基本介绍
+###### 3.4.1 基本介绍
 
 1) bool类型数据只允许取值true和false
 2) bool类型占用1个字节
@@ -300,9 +300,13 @@ func main(){
 方式二：使用strconv包的函数
 
 func FormatBool(b bool) string
+
 func FormatFloat(f[被转化的变量] float64,fmt[格式] byte,prec[小数位数],bitSize[小数是float64] int) string
+
 func FormatInt(i int64,base【进制】 int)string
+
 func FormatUint(uint64,base int) string
+
 func Itoa(a int) string
 
 ###### 3.8.2 string类型-->基本数据类型
