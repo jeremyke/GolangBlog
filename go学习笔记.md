@@ -13,7 +13,7 @@ go run //编译和运行合为一步
 3. Go严格区分大小写
 4. Go行末无需加‘;’,编译器会主动把特定符号后的换行符转换为分号，比如：
         （1）标识符、整数、浮点数、虚数、字符或字符串文字
-        （2）关键字  break、continue、fallthrough或return
+        （2）关键字  break,continue,allthrough或return
         （3）运算符  ++,--
         （4）分隔符  )、]或}
 5. Golang定义的变量或者import的包在程序中没有用到就会编译失败
@@ -525,15 +525,228 @@ func main()  {
 }
 ```
 
+## 5 程序流程控制
+> (1)顺序控制
+> (2)分支控制
+> (3)循环控制
 
+#### 5.1 顺序控制
+>从上到下依次执行
 
+#### 5.2 if分支控制
+>单分支，双分支，多分支
 
+###### 5.2.1 单分支
 
+```go
+if 条件表达式 {
+    执行代码块
+}
 
+func main()  {
+    var age int
+    fmt.Printf("请输入你的年龄")
+    fmt.Scanln(&age)
+    if age > 18 {
+        fmt.Printf("你的年龄大于18，需要对自己行为负责！")
+    }
+}
+```
+**细节**
 
+1)Golang支持在if条件语句中申明变量，且必须有条件表达式
+```go
+if var age = 8;age>18{
+}
+```
+2)if后面的小括号可带可不带，推荐不写！
+###### 5.2.2 多分支
+```go
+if 条件表达式 {
+    执行代码块1
+}else{
+    执行代码块2
+}
+```
+**细节：**
+else不能换行
 
+###### 5.2.3 多分支
+```go
+if 条件表达式1 {
+    执行代码块1
+}else if 条件表达式2 {//可以多个else if
+    执行代码块2
+}else {
+    执行代码块n
+}
+```
+**说明：**
 
+1) else并不是必要的。
+2) 多分支只有一个入口，从上到下依次执行。
 
+#### 5.3 switch分支结构
+
+###### 5.3.1 基本介绍
+
+1) switch语句用于基于不同   条件执行不同动作，每一个case分支都是唯一的，从上到下逐一测试，直到匹配为止。
+
+2) 匹配项后面不需要再加break
+
+###### 5.3.2 基本语法
+
+```go
+switch 表达式 {
+    case 表达式1,表达式2,...://多表达式，只要其中一个表达式匹配即可执行，也就是说是或的关系
+        代码块1,
+    
+    case 表达式3,表达式4,...:
+    	代码块2,
+    
+    //这里可以有多个case语句
+    default:
+        代码块n+1
+}
+```
+
+**注意说明**
+
+1) golang的case后面可以多个表达式
+
+2) golang的case后面不需要加break
+
+###### 5.3.3 switch使用细节
+
+1) case后面是一个或多个表达式（即:常量，变量，有返回值的函数...）
+2) case后面的各个表达式的值的数据类型必须和switch的表达式数据类型一致
+3) case后面多个表达式用逗号隔开
+4) case后面的表达式如果是常量值（字面值），则要求不能重复
+5) case后面不加break
+6) default语句不是必须的
+7) switch后也可以不带表达式，类似if-else分支来使用。
+```go
+switch {
+    case age==10 ://这里表达式也可以是范围
+        fmt.Println("10.....")
+    case age==20 :
+    	fmt.Println("20.....")
+    defaulf:
+        fmt.Println("meiyoulaaaaaa")
+}
+```
+8) switch后面也可以定义/申明一个变量分好结束，但是这里不推荐。
+```go
+switch age := 10;{
+    case 10 :
+        fmt.Println("10.....")
+    case 20 :
+    	fmt.Println("20.....")
+    defaulf:
+        fmt.Println("meiyoulaaaaaa")
+}
+```
+9) switch穿透fallthrough,如果在case语句块后增加fallthrough，则会继续执行下一个case,这叫switch穿透(只能穿透一层)
+```go
+var age = 20
+switch age {
+    case 10 :
+        fmt.Println("10.....")
+        fallthrough
+    case 20 :
+    	fmt.Println("20.....")
+    defaulf:
+        fmt.Println("meiyoulaaaaaa")
+}
+```
+10) Type Switch:switch语句还可以被用于type-switch来判断某个interface变量中实际指向的变量类型。
+```go
+var x interface{}
+var y = 10.0
+x = y
+switch i := x.(type){//x的实际变量类型是float64
+    case nil:
+        fmt.Printf("x的类型：%d",i)
+    case int:
+    	fmt.Println("x是int类型")
+    default:
+        fmt.Println("都不是。。。")
+}
+```
+
+**switch和if的比较：**
+1) 如果判断的具体数值不多，而且符合整数，浮点数，字符，字符串这几种类型。建议使用switch语句，简洁高效。
+2) 其他情况，对区间判断和结果为bool类型的判断，使用if,if的使用范围更广。
+
+#### 5.4 for循环控制
+
+###### 5.4.1 基本语法
+```go
+for 循环变量初始化;循环条件;循环变量迭代 {
+    //循环体
+}
+```
+**四大要素：**
+变量初始化，循环条件，循环变量迭代，循环体
+
+**执行顺序：**
+循环变量初始化-->循环条件判断-->为真：循环体--->为假：退出循环-->循环变量迭代
+
+###### 5.4.1 细节说明
+
+1) for循环的第二种使用方式：将变量初始化和变量迭代写在其他地方
+```go
+for 循环判断条件 {
+    //循环体
+}
+```
+2) for循环的第三种使用方式：这个写法等价于for ; ; {},通常需要配合break语句使用。
+```go
+for {
+    //循环体
+}
+```
+3) Golang提供for-range的方式，可以方便遍历字符串和数组。
+```go
+//传统字符串遍历不能含有中文，会出现乱码。因为这是按字节遍历的，汉字占3个字节，以后再说解决方法：转为slice。
+str := "hello,world"
+//strslice := []rune(str)
+for i := 0; i<len(str);i++ {
+    fmt.Printf("%c",str[i])
+}
+//for-range,可以遍历中文,按字符方式遍历。
+for index; val := range str {
+    fmt.Printf("index=%d,val=%c",index,val)
+}
+```
+
+#### 5.5 while和do...while的实现
+
+Golang中没有while和do...while语法
+
+- 用for实现while：
+```go
+//循环变量初始化
+for{
+    if 循环条件表达式{
+        break
+    }
+    //循环体
+    //循环变量迭代
+}
+```
+
+- 用for实现do...while：
+```go
+//循环变量初始化
+for{
+    //循环体
+    //循环变量迭代
+    if 循环条件表达式{
+        break
+    }
+}
+```
 
 
 
