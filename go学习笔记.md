@@ -692,7 +692,7 @@ for 循环变量初始化;循环条件;循环变量迭代 {
 **执行顺序：**
 循环变量初始化-->循环条件判断-->为真：循环体--->为假：退出循环-->循环变量迭代
 
-###### 5.4.1 细节说明
+###### 5.4.2 细节说明
 
 1) for循环的第二种使用方式：将变量初始化和变量迭代写在其他地方
 ```go
@@ -720,7 +720,7 @@ for index; val := range str {
 }
 ```
 
-#### 5.5 while和do...while的实现
+###### 5.4.3 while和do...while的实现
 
 Golang中没有while和do...while语法
 
@@ -748,14 +748,76 @@ for{
 }
 ```
 
+#### 5.5 多重循环控制
 
+###### 5.5.1 打印金字塔
+```go
+package main
 
+import (
+	"fmt"
+)
+func main()  {
+	var num int
+	fmt.Println("请输入金字塔层数")
+	fmt.Scanln(&num)
+	for i := 1 ; i<=num ;i++ {//层数
+		for k := 1 ; k<=num-i ; k++ {//空格数
+			fmt.Print(" ")
+		}
+		for j := 1 ; j<=(2*i-1) ; j++ {//星星数
+			fmt.Print("*")
+		}
+		fmt.Println("\n")
+	}
+}
+```
+###### 5.5.2 打印九九乘法表
+```go
+package main
 
+import (
+	"fmt"
+)
 
+func main()  {
+	for i := 1; i<10 ; i++ {
+		for j := 1; j<=i ; j++ {
+			fmt.Printf("%v * %v = %v\t",j,i,i*j)
+		}
+		fmt.Println("\n")
+	}
+}
+```
 
+#### 5.6 跳转控制-break
 
+###### 5.6.1 基本介绍
 
+break 语句用于终止某个语句块的执行，用于中断当前for循环或者switch语句。
 
+###### 5.6.2 细节说明
+
+1) break 语句出现在多层嵌套语句的语法块中时，可以通过标签指明要终止的是哪一层语法块。
+
+2) 标签的基本使用
+
+```go
+label1: {
+    label2: {
+        break label1;//不写就是指当前循环
+    }
+}
+//例子：
+label1:
+for i:=0;i<10;i++{
+    label2:
+    for j:=0;j<4;j++{
+        break label1; 
+   }
+}
+```
+#### 5.7 跳转控制-continue
 
 
 
