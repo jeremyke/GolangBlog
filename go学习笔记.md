@@ -932,6 +932,140 @@ func 函数名 (形参列表) (返回值类型列表) {
 
 2) 如果返回只有一个值，(返回值类型列表)中可以不写小括号()
 
+#### 6.4 函数-递归调用
+
+###### 6.4.1 基本介绍
+
+一个函数在函数体内又调用了本身，我们称之为递归调用。
+
+案例：
+```go
+func test(n int) {
+    if n > 2 {
+        n--
+        test(n)
+    }
+    fmt.Println("n=",n)
+}
+//2 2 3
+```
+
+###### 6.4.2 递归调用的总结
+
+1) 执行一个函数时，就创建一个新的受保护的独立空间（新的函数栈）。 
+
+2) 函数的局部变量是独立的，不会相互影响。
+
+3) 递归必须向退出递归的条件逼近，否则就是无限递归。
+
+4) 当一个函数执行完毕，或者遇到return，就会返回，遵守谁调用就将结果返回给谁，同时当函数执行完毕或者返回时，该函数本身也会被系统销毁。
+
+###### 6.4.3 课堂练习
+
+- 题1：斐波那契数 请使用递归的方式，求出菲波拉契数1,1,2,3,5,8,13...给你一个整数求出他的值是多少？(代码见chapter06/feibolaqishu)
+
+- 题2：求函数值，已知f(1)=3;f(n)=2*f(n-1)+1,使用递归的思想求出f(n)的值(代码见chapter06/hanshuzhi)
+
+- 题3：猴子吃桃问题 有一堆桃子，猴子第一天吃了其中的一半，并再多吃了一个！以后每天猴子都吃了其中的一半，并再多吃一个。当到第十天，
+  想在吃时（还没吃），发现只有一个桃子了，问一共有多少个桃子？
+  
+```go
+package main
+
+import (
+	"fmt"
+)
+
+func main()  {
+	res := getNum(1)
+	fmt.Println("和为",res)
+}
+
+func getNum(n int) int{
+	var num int
+	if n==10 {
+		num = 1
+	}else{
+		num = 2*(getNum(n+1)+1)
+	}
+	return num
+}
+```
+
+###### 6.4.3 函数使用的注意事项和细节讨论
+
+1) 函数中的变量是局部的，函数外不生效。
+2) 基本数据类型和数组默认都是值传递，即进行值拷贝，在函数内修改，不会影响原来的值。
+3) 如果希望函数内的变量能修改函数外的变量，可以传入函数的地址&，函数内以指针的方式操作变量。
+4) Go函数不支持重载。
+```go
+func test (n1 int) int{
+    //函数体
+}
+func test (n1 int,n2 int) int{
+    //函数体
+}
+//这是不允许的！！！！！！
+
+```s
+5) 在GOlang中，函数也是一种数据类型，可以赋值给一个变量，则该变量就是一个函数类型的变量了。通过该变量可以对函数调用。
+```go
+func getSum(n1 int, n2 int) int {
+    return n1+n2
+}
+
+func main()  {
+    a := getSum
+    fmt.Printf("a的类型%T,getSum类型是%T",a,getSum)//func(int,int) int func(int,int) int
+}
+```
+6) 函数既然是一种数据类型，因此在Go中，函数可以作为形参，并且调用。
+```go
+func getSum(n1 int, n2 int) int {
+    return n1+n2
+}
+func myFun(funvar func(int,int) int,num1 int,num2 int){
+    return funvar(num1,num2)
+}
+```
+7) 为了简化数据类型定义，Go支持自定义数据类型。
+    基本语法：type 自定义数据类型 数据类型
+```go
+type myFunType func(int,int) int
+```
+8) 支持对函数返回值命名
+```go
+func cal(n1 int, n2 int) (sum int, sub int){
+    sum = n1+n2
+    sub = n1-n2
+    return
+}
+```
+9) Golang支持可变参数
+```go
+//支持0到多个参数
+func sum(args... int) sum int{    
+}
+//支持1到多个参数
+func sum(n1 int,args... int) sum int {
+}
+```
+**说明：**
+（1） args是slice,通过args[index]可以访问到各个值
+（2） 案例：
+```go
+func getSum(n1 int,args... int) int {
+    sum := n1
+    for i:=0;i<len(args);i++{
+        sum += args[i]
+    }
+    return sum
+}
+```
+（3）如果一个函数的形参列表中有可变参数，则可变参数需要放在形参列表最后。
+
+
+
 
 
 
