@@ -1064,6 +1064,225 @@ func getSum(n1 int,args... int) int {
 ```
 （3）如果一个函数的形参列表中有可变参数，则可变参数需要放在形参列表最后。
 
+#### 6.5 init函数
+
+###### 6.5.1 基本介绍
+每一个源文件都可以包含一个init函数，该函数会在main函数执行前，被Go运行框架调用，也就是说init会在main函数前被调用。
+
+###### 6.5.1 细节讨论
+
+1) 如果一个文件同时包含全局变量定义，init函数和main函数，则执行的流程是：变量定义-->init函数-->main函数。
+如果引入外包，则外包的初始化在引入的时候就被init了，即外包（引入的包）-->本包。
+```go
+package main
+import "fmt"
+var age = test()
+
+func test()int {
+    fmt.Println("test()")
+    return 90
+}
+
+func init()  {
+    fmt.Println("init()")
+}
+
+func main()  {
+    fmt.Println("main(),age=",age)
+}
+//test()  init()    main(),age=90
+```
+2) init函数的最主要作用，就是完成一些初始化的工作。
+
+#### 6.6 匿名函数
+
+###### 6.6.1 基本介绍
+
+Go支持匿名函数，如果某个函数只是希望使用一次，可以考虑使用匿名函数，匿名函数也可以实现多次调用。
+
+- 使用方式：
+
+（1）在定义匿名函数时直接调用，不用赋值给变量，它只能调用一次。
+```go
+package main
+
+import "fmt"
+
+func main(){
+    res := func (n1 int,n2 int) int {
+        return n1+n2
+    }(12,45)
+    fmt.Println("n1和n2的和为",res)
+}
+```
+（2）将匿名函数赋给一个变量（函数变量），再通过该变量来调用匿名函数
+```go
+package main
+
+import "fmt"
+
+func main(){
+    var a = func (n1 int,n2 int) int {
+        return n1+n2
+    }//a的数据类型就是函数类型，可以通过a完成调用
+    res := a(10,30)
+    fmt.Println("和为",res)
+}
+```
+
+###### 6.6.2 全局匿名函数
+如果将匿名函数赋值给一个全局变量，那么这个匿名函数就是一个全局变量，可以在程序有效。
+```go
+package main
+
+import "fmt"
+
+var (
+    //Fun1就是全局匿名函数
+    Fun1 = func(n1,n2 int) int {
+        return n1*n2
+    }
+) 
+
+func main(){
+    res := Fun1(10,30)
+    fmt.Println("积为",res)
+}
+```
+#### 6.7 闭包
+
+###### 6.7.1 基本介绍
+闭包就是一个函数和与其相关的引用环境组合的一个整体。
+
+```go
+package main
+
+import "fmt"
+//累加器 返回的是一个函数。
+func AddUpper() func(int) int {
+	var n int = 10
+	return func (x int) int {
+		n = n + x
+		return n
+	}
+}
+
+func main(){
+	f := AddUpper()
+	fmt.Println(f(1))//11
+	fmt.Println(f(2))//13
+	fmt.Println(f(3))//16
+}
+```
+**说明：**
+
+（1）返回的是一个匿名函数，但是匿名函数引用到函数外的n,因此这个匿名函数就和n构成一个闭包。
+
+（2）反复调用f函数，因为n只初始化一次，每一次调用就进行累计。
+
+（3）闭包的关键，是返回的函数使用了哪些变量。
+
+###### 6.7.2 闭包的实践
+```go
+package main
+
+import (
+    "strings"
+)
+
+func makeSuffix(suffix string) func (string) string {
+    return func (name string) string {
+        if !strings.HasSuffix(name,suffix) {
+            return name + suffix
+        }       
+    }
+}
+
+f := makeSuffix(".jpg")
+
+fmt.Println("文件名为=".f2("winter"))//winter.jpg
+fmt.Println("文件名为=".f2("winter.jpg"))//winter.jpg
+fmt.Println("文件名为=".f2("winter.avi"))//winter.avi.jpg
+```
+**总结：**
+
+（1）返回的匿名函数和makeSuffix(suffix string)d的suffix变量组合成一个闭包，因为返回的函数引用到suffix变量。
+
+（2）体会一下闭包的好处：如果使用传统的方法，亦可以实现功能。但是传统方法需要每次都传入后缀名，比如.jpg，而闭包因为可以
+     保留上次引用的某个值，所以我们传入一次就可以反复使用。
+
+#### 6.8 函数-defer
+
+###### 6.8.1 基本介绍
+
+函数中，程序员经常需要创建资源（比如：数据库连接，文件句柄，锁等）。为了在函数执行完毕后，及时释放资源，Go的设计者提供了defer(延时机制)
+
+```go
+package main
+
+import (
+    "fmt"
+)
+
+func sum(n1,n2 int) int {
+    //当执行defer时，其后面的语句会压入defer栈中；当函数执行完毕后再执行，先入后出执行。
+    defer fmt.Println("ok1 n1=",n1)
+    defer fmt.Println("ok2 n2=",n2)
+    res := n1 + n2 
+    fmt.Println("ok3 res=",res)
+    return res
+}
+
+func main()  {
+    res := sum(10,20)
+    fmt.Println("res=",res)
+}
+```
+###### 6.8.2 细节说明
+
+1) 当go执行到一个defer时，不会立即执行defer后的语句，而是将defer后的语句先压入到defer栈中，然后继续执行函数下一个语句。
+2) 当函数执行完毕后，再从defer栈中，先入后出的方式执行语句。
+3) 在defer将语句放入到栈中时，也会将相关的值拷贝同时入栈。
+```go
+package main
+
+import (
+    "fmt"
+)
+
+func sum(n1,n2 int) int {
+    defer fmt.Println("ok1 n1=",n1)//10
+    defer fmt.Println("ok2 n2=",n2)//20
+    n1++//11
+    n2++//21
+    res := n1 + n2//32 
+    fmt.Println("ok3 res=",res)
+    return res
+}
+
+func main()  {
+    res := sum(10,20)
+    fmt.Println("res=",res)
+}
+```
+
+###### 6.8.3 defer的实践
+
+defer最主要的价值是在函数执行完毕后，可以及时释放函数创建的资源。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
