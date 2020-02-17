@@ -1278,9 +1278,19 @@ defer最主要的价值是在函数执行完毕后，可以及时释放函数创
 2) 全局变量：函数外部声明的变量，作用域在整个包中都有效，如果首字母大写，则作用域为整个程序有效。
 3) 如果变量是一个代码块，比如for/if中，那么这个变量的作用域就在该代码块中。
 
+#### 6.10 字符串的系统函数
 
-
-
+1) len(str):内嵌函数，不用引入包，直接使用，对应手册里的builtin。字符串的字节长度。
+2) 字符串遍历，同时处理有中文的问题r = []rune(str)
+3) 字符串转整数： n,err := strconv.Atoi("12")
+4) 整数转为字符串：str := strconv.Itoa("hello go")
+5) 字符串转为[]byte:var bytes = []byte("hello go")//打印出每个字符的ascll码
+6) []byte转为字符串:str = string([]byte{97,98,99})
+7) 10进制转为2,8,16进制：str := strconv.FormatInt(123,2)//2-->8,16,返回对应字符串
+8) 查找子串是否在指定的字符串中:strings.Contains("seafood","foo")//true
+9) 统计一个字符串有几个指定的子串：string.Count("ceheese","e")//4
+10) 不区分大小写的字符串比较（==是区分字母大小写的）：fmt.Println(string.EqualFold("abc","Abc"))
+11) 返回子串在字符串中第一次出现的index值，如果没有，返回-1：string.Index("NLT_abc","abc")
 
 
 
