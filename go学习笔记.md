@@ -1288,21 +1288,141 @@ defer最主要的价值是在函数执行完毕后，可以及时释放函数创
 6) []byte转为字符串:str = string([]byte{97,98,99})
 7) 10进制转为2,8,16进制：str := strconv.FormatInt(123,2)//2-->8,16,返回对应字符串
 8) 查找子串是否在指定的字符串中:strings.Contains("seafood","foo")//true
-9) 统计一个字符串有几个指定的子串：string.Count("ceheese","e")//4
-10) 不区分大小写的字符串比较（==是区分字母大小写的）：fmt.Println(string.EqualFold("abc","Abc"))
-11) 返回子串在字符串中第一次出现的index值，如果没有，返回-1：string.Index("NLT_abc","abc")
+9) 统计一个字符串有几个指定的子串：strings.Count("ceheese","e")//4
+10) 不区分大小写的字符串比较（==是区分字母大小写的）：fmt.Println(strings.EqualFold("abc","Abc"))
+11) 返回子串在字符串中第一次出现的index值，如果没有，返回-1：strings.Index("NLT_abc","abc")
+12) 返回子串在字符串最后一次出现的index，如果没有，返回-1：strings.LastIndex("go golang",""go")
+13) 将指定的子串替换成另一个子串：strings.Replace("go go hello","go","go语言",n) n可以指定你希望替换的个数，如果n=-1表示全部替换。
+14) 按照指定的某个字符，为分割标识，将一个字符串拆分成字符串数组：strings.Split("hello,world,ok",",")
+15) 将字符串的字母进行大小写的转换：strings.ToLower("Go")//strings.ToUpper("Go")
+16) 将字符串左右两边的空格去掉：strings.TrimSpace(" sdfds sdfd dsfdg    ")
+17) 将字符串的左右两边指定的字符串去掉，：strings.Trim("! he！llo! "," !")//去掉左右两边的空格和！
+18) 将字符串左边指定的字符去掉：strings.TrimLeft("!hello"," !")
+19) 将字符串右边指定的字符去掉：strings.TrimRight("!hello"," !")
+20) 判断字符串是否以指定上午字符串开头：strings.HasPrefix("ftp://192.168.0.0.1","ftp")
+21) 判断字符串是否以指定上午字符串结尾：strings.HasPrefix("adf.jpg",".jpg")
 
+#### 6.11 日期和时间相关函数
 
+1) 需要引入time包
+2) time.Time类型，用于表示时间//now := time.Now()
+3) 通过now获取年月日时分秒:now.Year/Month/Day/Hour/Minute/Second
+4) 格式化日期：
+    （1）用上述的函数拼接
+    （2）fmt.Printf(now.Format("2006/01/02 15:04:05"))//各个数字是固定的，必须这样写；但数字间的字符串间隔符号可以换。
+         fmt.Printf(now.Format("2006-01-02"))
+         fmt.Printf(now.Format("15:04:05"))
+         fmt.Printf(now.Format("15"))
 
+5) 时间和常量
+    const(
+        Nanosecond Duration = 1 //纳秒
+        Microsecond = 1000*Nanosecond //微秒
+        Millisecond = 1000*Microsecond //毫秒
+        Second = 60*Millisecond //秒
+        Minute = 60*Second //分钟
+        Hour = 60*Minute //小时
+    )
+    常量的作用：在程序中可用于获取指定时间单位的时间，比如想获得100毫秒
+    100*time.Millisecond
+    
+6) 休眠：结合time.Sleep()休眠来完成逻辑
+7) 获取unix时间戳和unixnano时间戳
 
+#### 6.12 Golang的内置函数（builtin）
 
+1) len:用来求长度，比如string,array,slice,map,channel
+2) new：用来分配内存，主要用来分配值类型，比如int,float32,struct,返回的是指针
+3) make：用来分配内存，主要用来分配引用类型，比如channel,map,slice。
 
+#### 6.13 错误处理
 
+#### 6.13.1 基本说明
 
+1) Go语言追求简洁优雅，所以不支持try...catch...finally
+2) Go语言引入的处理方式为：defer,panic,recover
+3) 这几个异常的使用场景可以简单描述为：Go中抛出一个panic异常,然后在defer中通过recover捕获这个异常，然后正常处理。
 
+**defer+recover错误处理：**
 
+```go
+package main
 
+import "fmt"
 
+func test()  {
+	//使用defer和recover来捕获和处理异常
+	defer func(){
+		err := recover()
+		if err != nil {
+			fmt.Println("err=",err)
+		}
+	}()
+	num1 := 10
+	num2 := 0
+	res := num1/num2
+	fmt.Println("res=",res)
+}
+
+func main()  {
+	test()
+	fmt.Println("main后面的代码...")
+}
+```
+说明：进行错误处理后，程序不会轻易挂掉，如果加入预警代码，可以让程序更加更加健壮。
+
+#### 6.13.2 自定义错误
+
+Golang中支持自定义错误，使用errors.New和panic内置函数。
+
+1) errors.New("错误说明")，会返回一个error类型的值，表示一个错误。
+2) panic内置函数，接收一个interface{}类型的值（也就是任何值）作为参数，可以接收error类型的变量，输出错误信息，并退出程序。
+
+```go
+package main
+
+import (
+	"errors"
+	"fmt"
+)
+
+func test()  {
+	//使用defer和recover来捕获和处理异常
+	defer func(){
+		err := recover()
+		if err != nil {
+			fmt.Println("err=",err)
+		}
+	}()
+	num1 := 10
+	num2 := 0
+	res := num1/num2
+	fmt.Println("res=",res)
+}
+
+func readConf(name string) (err error) {
+	if name == "config.ini" {
+		return nil
+	}else{
+		return errors.New("读取文件错误")
+	}
+}
+
+func test2()  {
+	err := readConf("config2.ini")
+	if err != nil {
+		//如果读取文件错误，就输出错误，并终止程序
+		panic(err)
+	}
+	fmt.Println("程序继续执行...")
+}
+
+func main()  {
+	test2()
+	fmt.Println("main后面的代码...")
+}
+
+```
 
 
 
