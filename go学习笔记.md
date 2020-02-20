@@ -1546,13 +1546,102 @@ var arr [3]int{1,2,4}
 var sliceA = arr[1:2]
 ```
 -方式二：make创建切片
-```go
 
+var 切片名 []类型 = make([]类型,len,[cap])//cap可选
+```go
+package main
+
+import (
+	"fmt"
+)
+
+func main() {
+	var aslice []float64 = make([]float64,5)//对于slice必须先make再使用。var aslice []float64不行的
+	fmt.Println(aslice)
+	fmt.Println("切片的长度是：", len(aslice))
+	fmt.Println("切片的容量是：", cap(aslice))
+}
+```
+**总结：**
+
+1) 通过make方式创建切片可以指定切片的大小和容量
+2) 如果没有给切片的各个元素赋值，那么就会使用默认值。
+3) 通过make创建的切片，其引用的数组是由make底层维护的，对外不可见，即只能通过slice去访问各个元素。
+
+
+-方式三：定义一个切片，直接就指定具体数组，使用原理类似make
+
+```go
+func main() {
+    var aslice []int = []int {1,3,5}
+    fmt.Println(aslice)
+} 
+```
+**方式一和方式二的区别：**
+
+1) 方式1是直接引用数组，这个数组是事先存在的，程序员是可见的。
+2) 方式2是通过make创建切片，make也会创建一个数组，是由切片在底层进行维护，程序员不可见。
+
+###### 7.3.5 切片的遍历
+ for循环和for-range循环
+
+###### 7.3.6 切片的注意细节
+1) 切片初始化时： var slice = arr[startIndex,endIndex],左闭右开
+2) 切片初始化时，仍不能越界。范围在[0,len(arr)]之间，但是可以动态增长。
+3) cap是内置函数，用于统计切片的容量，即最大可以存放多少个元素。
+4) 切片定义完还不能使用，因为本身是一个空的，需要让其引用到一个数组或make一个空间供切片来使用。
+5) 切片可以继续切片。
+```go
+var arr [5]int = [...]int{1,2,3,5,8}
+
+var slice1 = arr[:]
+var slice2 = slice1[1,2]//2
+```
+6) 使用append内置函数，可以对切片进行动态追加。
+```go
+var arr [5]int = [5]int{1,2,3,4,5}
+var slice1 = arr[:]
+slice1 = append(slice1,10,20,30)//追加具体元素
+slice1 = append(slice1,slice1...)//追加切片，注意三个点
+```
+append操作的本质是对数组扩容，go底层会创建一个新的数组newArr,然后slice原来包含的元素拷贝到新的数组newArr，slice重新引用新的
+数组newArr,newArr是在底层维护，不可见的。
+7) 切片的拷贝copy
+```go
+copy(param1,param2)//param1和param2都是切片类型
 ```
 
+###### 7.3.6 string和slice
 
+1) string其实也是一个切片，底层是一个byte数组，因此string也可以进行切片处理
+```go
+package main
 
+import (
+	"fmt"
+)
 
+func main()  {
+	str := "hello@abc"
+	slice := str[6:]
+	fmt.Println("slice=",slice)
+}
+```
+2) string是不可变的，也就是说不通过str[0]='z'来修改字符串
+3) 如果一定要修改字符串，可以先将string转为[]byte或者[]rune,然后再转为string
+```go
+str := "hello@abc"
+	slice := str[6:]
+	fmt.Println("slice=",slice)
+	slice2 := []byte(str)
+	slice2[0] = 'x'
+	str2 := string(slice2)
+	fmt.Println("str2",str2)
+	slice3 := []rune(str)
+	slice3[1] = '你'
+	str3 := string(slice3)
+	fmt.Println("str3",str3)
+```
 
 
 
