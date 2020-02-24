@@ -1759,9 +1759,173 @@ for _,value := range arr {
 	}
 ````
 
-## 9 map p173
+## 9 map
+map是key-value的数据结构，又称为字段或者关联数组。类型java的集合。
 
-## 10 面向对象编程 p181-225
+#### 9.1 map的声明
+###### 9.1.1 基本语法
+
+var map变量名 map[key数据类型]值数据类型
+
+- key是什么数据类型：
+
+Golang的map的key可以有很多种类型，比如bool,数字，string,指针，channel,还可以是包含前几个类型的接口，结构体，数组。
+通常为int和string
+
+**注意：**
+
+slice,map和function不能作为key的类型，因为这几个没法用==来判断
+
+- value数据类型：
+
+value的数据类型和key基本一样，但是通常为：数字，string，map,struct
+
+- map声明举例：
+
+```go
+var a map[string]string
+var b map[string]map[string]string
+```
+**注意：**
+
+map声明是不会分配内存的，初始化需要make，分配内存后才可以赋值和使用。
+
+```go
+func main()  {
+	var aMap map[string]string
+	//使用make分配内存空间
+	aMap = make(map[string]string,10)//表示可以分配10对key-value
+	aMap["no1"] = "宋江"
+	aMap["no2"] = "吴用"
+	aMap["no1"] = "武松"//覆盖前面同样的key-value对
+	fmt.Println(aMap)
+}
+```
+**说明：**
+
+1) map在使用前一定要make
+2) map的key不能重复，如果重复就覆盖
+3) map的value可以重复
+4) map的key-value是无序的
+
+#### 9.2 map的使用方法
+
+1) 方式一：申明，这时map=nil
+```go
+var cities map[string]string
+cities = make(map[string]string,10)
+```
+
+2) 方式二：声明直接make
+```go
+var cities = make(map[string]string,10)
+```
+
+3) 方式三：声明直接赋值
+```go
+var cities map[string]string = map[string]string{
+    "no1":"北京",
+    "no2":"上海",//该逗号不能省去
+}
+cities["no3"] = "深圳"
+```
+#### 9.3 map的增删改查操作
+###### 9.3.1 map增加和更新
+```go
+map["key"] = value //如果key还没有，就是增加，如果key存在就是修改
+```
+###### 9.3.2 map删除
+```go
+delete(map变量名,keyName)//如果删除不存在的key，也不会报错
+```
+不支持一次性删除全部key,可以遍历删除或者分配新的空间，例如：
+```go
+map = make(map[string]string)
+```
+###### 9.3.3 map查找
+```go
+var citiesMap = make(map[string]string,10)
+citiesMap["n01"] = "上海"
+citiesMap["n02"] = "武汉"
+val,findRes := citiesMap["n01"]//如果找到了，findRes返回true，否则返回false
+```
+#### 9.4 map遍历（只能用for-range）
+```go
+cityMaps := make(map[string]string)
+cityMaps["no1"] = "北京"
+cityMaps["no2"] = "上海"
+cityMaps["no3"] = "深圳"
+cityMaps["no3"] = "广州"
+for _,value := range cityMaps {
+    fmt.Println(value)
+}
+```
+#### 9.5 map长度(多少对key-value)
+```go
+len(studentMap)
+```
+
+#### 9.6 map切片
+
+###### 9.6.1 基本介绍
+切片的数据类型如果是map,则称为slice of map，map切片，这样使用则map的个数就可以动态变化了！
+
+###### 9.6.2 案例
+```go
+monsters := make([]map[string]string,1)//make切片,2指长度
+if monsters[0]==nil {
+    monsters[0] = make(map[string]string,2)
+    monsters[0]["name"] = "孙悟空"
+    monsters[0]["sex"] = "男"
+}
+newMonster := map[string]string{
+    "name" : "猪八戒",
+    "sex" : "男",
+}
+
+monsters = append(monsters,newMonster)//动态增加map的个数
+fmt.Println(monsters)
+```
+
+#### 9.7 map排序
+###### 9.7.1 基本介绍
+1) Golang中的map默认是无序的，注意也不是按照添加的顺序存放的，你每次遍历，得到的输出结果可能不一样。
+2) Golang中map的排序，是先将key排序，然后根据key值遍历输出即可。
+
+```go
+package main
+
+import (
+	"fmt"
+	"sort"
+)
+
+func main()  {
+	map1 := make(map[int]int,10)
+	map1[10] = 100
+	map1[1] = 13
+	map1[4] = 56
+	map1[8] = 90
+	fmt.Println(map1)//无序的，每次打印结果不一样
+	//排序
+	var keys []int
+	for k,_ := range map1 {
+		keys = append(keys,k)
+	}
+	sort.Ints(keys)
+	fmt.Println(keys)
+
+	for _,v := range keys {
+		fmt.Printf("map[%v]=%v ",v,map1[v])
+	}
+}
+```
+#### 9.8 map使用细节
+1) map是引用类型，遵守引用类型传递机制，在一个函数接收map,修改后，会直接修改原来的map
+2) map的容量达到后，再想增加map的元素，会自动扩容，并不会发生panic异常，也就是map会动态增加键值对的容量。
+3) map的value也经常使用struct类型，更适合管理复杂的数据。
+
+## 10 面向对象编程
 
 
 
