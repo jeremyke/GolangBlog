@@ -1687,15 +1687,77 @@ func find(option string,wang [4]string) {
 	}
 }
 ```
+
 2) 二分查找（该数组是有序的）
+```go
+func erfen(arr *[5]int, option int, leftIndex int, rightIndex int) {
+	if leftIndex > rightIndex {
+		fmt.Println("不存在找不到")
+		return
+	}
+	middle := (leftIndex + rightIndex) / 2
+	if (*arr)[middle] > option {
+		erfen(arr,option,leftIndex,middle-1)
+	} else if (*arr)[middle] < option {
+		erfen(arr,option,middle+1,rightIndex)
+	} else {
+		fmt.Println("找到了，下标为：",middle)
+	}
+}
+```
 
+#### 8.4 二维数组
 
+###### 8.4.1 入门案例
+```go
+func main()  {
+	//定义二维数组
+	var arr [4][6]int
+	arr[1][2] = 1
+	arr[2][1] = 2
+	arr[2][3] = 3
+	//遍历
+	for i := 0; i < len(arr);i++ {
+		for j := 0; j<len(arr[i]);j++ {
+			fmt.Print(arr[i][j]," ")
+		}
+		fmt.Println()
+	}
+}
+```
 
+###### 8.4.2 使用方法
 
+- 方法一：先申明再赋值
+1) 语法：var 数组名 [大小][大小]类型,比如：var arr [2][3]int
+2) 二维数组在内存的存在形式
 
+- 方法二：直接初始化
+1) 语法：var 数组名 [大小][大小]类型=[大小][大小]类型{{初始值},{初始值}}
+```go
+var arr [2][2]int = [2][2]int{{1,2},{3,4}}
+```
+###### 8.4.3 遍历
 
+- for循环遍历
+```go
+for i := 0;i<len(arr);i++ {
+		for j := 0;j<len(arr[i]);j++ {
+			fmt.Print(arr[i][j])
+		}
+		fmt.Println()
+	}
+```
 
-
+- for-range遍历
+````go
+for _,value := range arr {
+		for _,value1 := range value {
+			fmt.Print(value1)
+		}
+		fmt.Println()
+	}
+````
 
 ## 9 map p173
 
