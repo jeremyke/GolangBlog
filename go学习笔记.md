@@ -2164,9 +2164,99 @@ func main()  {
 
 #### 10.2 方法
 
+###### 10.2.1 方法的基本介绍
 
+在某些情况下，我们需要声明方法。比如Person结构体，除了有一些字段外（年龄，性别...），还有一些行为，比如：跑步，说话...这时就要用方法来完成。
+Golang中的方法是作用在指定数据类型上的（即：和指定数据类型绑定），因此自定义类型，都可以有方法，而不仅仅是struct。
 
+###### 10.2.2 方法的声明和调用
 
+```go
+type A struct {
+    Num int
+}
+func (a A) test()  {
+    fmt.Println(a.Num)
+}
+var t A
+t.test()
+```
+**说明：**
+1) func(a A) test(){} 表示A结构体有一个方法，方法名为test
+2) (a A)体现test方法是和A类型绑定的
+
+###### 10.2.3 快速入门
+```go
+package main
+
+import (
+	"fmt"
+)
+
+type Person struct {
+	Name string
+	Age int
+}
+//speak方法绑定到Person结构体
+func (p Person) speak()  {
+	fmt.Printf("%v是一个好人\n",p.Name)
+}
+func (p Person) jisuan()  {
+	res := 0
+	for i :=1;i<=1000;i++{
+		res +=i
+	}
+	fmt.Println("计算结果是",res)
+}
+func (p Person) jisuan2(n int)  {
+	res := 0
+	for i :=1;i<=n;i++{
+		res +=i
+	}
+	fmt.Println("计算结果是",res)
+}
+func (p Person) getTotal(n int,m int) int {
+	return n+m
+}
+
+func main()  {
+	var xiaoming Person
+	xiaoming.Name = "小明"
+	xiaoming.speak()
+	xiaoming.jisuan()
+	xiaoming.jisuan2(89)
+	total := xiaoming.getTotal(56,32)
+	fmt.Println("两数之和为",total)
+}
+
+```
+###### 10.2.4 方法的调用和传参机制
+
+**说明：**方法的调用和传参机制与函数基本一样，不一样的地方是变量调用方法时，该变量也会当做实参也传递给方法（如果变量是值类型，就是值拷贝，
+        如果是引用类型，就是地址拷贝）。
+
+###### 10.2.5 方法的声明
+
+```go
+func (recevier type) 方法名称(参数列表) (返回值列表) {
+    //方法体
+    return 返回值
+} 
+```
+**说明：**
+1) 参数列表，表示方法输入
+2) recevier type:表示这个方法和type这个类型进行绑定，或者说该方法作用于type类型
+3) recevier type: type可以是结构体，也可以是其他自定义类型
+4) recevier：就是type类型的一个实例
+5) 返回值列表：表示返回值，可以多个
+6) return语句不是必须的
+
+###### 10.2.6 细节讨论
+1) 结构体类型是值类型，在方法调用中遵守值类型的传递机制，是值拷贝。
+2) 如果程序员希望在方法中，修改结构体变量的值，可以通过结构体指针的方式来处理（通常的做法）
+3) Golang的方法作用在指定的数据类型上（即：和指定数据类型绑定），因此自定义的类型，都可以有方法，不仅仅是struct，int32,float64都有自己的方法
+4) 方法的访问范围控制的规则，和函数一样，方法名手写字母小写，只能在本包中使用，大写，则可以在本包和其他包中使用
+5) 如果一个类型实现了String()这个方法，那么fmt.Println默认会调用这个实例的String()进行输出
 
 
 
