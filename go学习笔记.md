@@ -136,7 +136,7 @@ func main()  {
 
 - 复杂数据类型
 ```text
-指针，数组，结构体（struct，相当于php的class），管道（channel），函数，切片（slice。动态数组），接口，map（相当于集合）
+指针，函数，数组，切片（slice。动态数组）,map（相当于集合）,结构体（struct，相当于php的class），接口，管道（channel）
 ```
 #### 3.1 整数类型
 
@@ -1927,6 +1927,261 @@ func main()  {
 
 ## 10 面向对象编程
 
+#### 10.1 结构体
+
+###### 10.1.1 Golang面向对象编程说明
+
+1) Golang并不是纯碎的面向对象语言，但是Golang支持面向对象编程特性。
+2) Golang没有class类，Golang的struct和其他编程语言的class有同等地位，可以理解为Golang是基于struct来实现OOP特性的。
+3) Golang面向对象编程非常简洁，去掉了传统OOP语言的方法重载，构造函数和析构函数，隐藏的this指针等等。
+4) Golang仍然有面向对象编程的继承，封装和多态的特性，只是实现的方式和其他OOP语言不一样，比如继承：Golang没有extends关键字，继承是通过
+    匿名字段来实现的。
+5) Golang面向对象很优雅，OOP本身就是语言类型系统的一部分，通过接口（interface）关联，耦合性低，也非常灵活。也就是说，Golang中面向
+    接口编程是非常重要的特性。
+    
+###### 10.1.2 结构体与结构体变量（实例/对象）关系
+
+1) 将一类事物的特征提取出来（比如猫类），形成一个新的数据类型，就是一个结构体。
+2) 通过这个结构体，我们可以创建多个变量（实例/对象）
+3) 事物可以是猫类，也可以是Person,Fish或者某个工具类
+
+###### 10.1.3 面向对象的方式解决养猫问题
+
+````go
+package main
+
+import (
+	"fmt"
+)
+//定义一个cat类，将cat类的各个字段放入cat结构体
+type Cat struct {
+	Name string
+	Age int
+	Color string
+}
+func main()  {
+	var cat1 Cat
+	cat1.Name = "小白"
+	cat1.Age = 10
+	cat1.Color = "白色"
+	fmt.Println(cat1)
+	fmt.Println(cat1.Color)
+}
+````
+###### 10.1.4 结构体和结构体变量的区别和联系
+
+1) 结构体是自定义的数据类型，代表一类事物
+2) 结构体变量是具体的，实实在在的代表某一个客观变量
+
+###### 10.1.5 结构体变量在内存中的存在形式
+>p184图后面补上
+
+
+###### 10.1.6 结构体声明
+
+```go
+type 结构体名称 struct {
+    fields1 字段类型
+    fields2 字段类型
+    ...
+}
+```
+###### 10.1.7 结构体字段
+
+字段是结构体的一个组成部分，一般是基本数据类型，数组，也可以是引用数据类型。
+
+**字段的细节说明：**
+
+1) 字段声明语法同变量，实例：字段名 字段类型
+2) 字段类型可以为：基本类型，数组和引用类型
+3) 在创建一个结构体变量后，如果没有给字段赋值，值类型的数据类型都对应一个0值，引用的数据类型都为nil,意为还没分配空间。
+    引用类型的字段必须先make再赋值!!!
+    
+```go
+package main
+
+import (
+	"fmt"
+)
+
+type Person struct {
+	Name string
+	Age int
+	Score [5]float64
+	ptr *int
+	slice1 []int
+	map1 map[string]string
+}
+func main()  {
+	var klp Person
+	//使用slice需要先make
+	klp.slice1 = make([]int,10)
+	//使用map也需要先make
+	klp.map1 = make(map[string]string)
+	klp.slice1[0] = 100
+	klp.map1["name"] = "klp"
+	fmt.Println(klp)
+}
+```
+4) 不同结构体变量的字段是独立的，互不影响，一个结构体变量字段的更改，不影响另一个。
+````go
+type Monster struct {
+    Name string
+    Age int
+}
+
+var monster1 Monster
+monster1.Name = "牛魔王"
+monster1.Age = 200
+monster3 := monster1
+monster2 := &monster1
+monster2.Name = "ss"
+
+fmt.Println("monster1=",monster1)
+fmt.Println("monster2=",*monster2)
+fmt.Println("monster3=",monster3)
+````
+
+###### 10.1.8 创建结构体变量和访问结构体字段
+
+1) 方式一：直接声明
+
+var person1 Person
+
+2) 方式二：{}    //推荐常用
+
+var person1 Person = Person{}
+
+```go
+type Monster struct {
+	Name string
+	Age int
+}
+
+func main()  {
+	monster1 := Monster{"marry",18}
+	fmt.Println(monster1)
+
+}
+```
+
+3) 方式三：new
+
+var person1 *Person = new(Person)
+
+```go
+type Monster struct {
+	Name string
+	Age int
+}
+monster2 := new(Monster)
+//monster2 是个指针
+(*monster2).Name = "smith"
+//上面的写法很繁琐，所以可以简化为：monster2.Name = "smith".底层会自动处理加上*
+monster2.Name = "jerry"
+(*monster2).Age = 20
+fmt.Println(*monster2)
+```
+
+4) 方式四：&
+
+var person1 *Person = &Person
+
+```go
+type Monster struct {
+	Name string
+	Age int
+}
+
+var monster3 *Monster = &Monster{"alitter",19}
+//因为Monster3 是一个指针，因此标准访问字段的方法是：*monster3.Name = "tom",同样可以简化为monster3.Name = "tom"，原因同上
+(*monster3).Name = "tom"
+monster3.Age = 17
+fmt.Println(*monster3)
+```
+
+**说明：**
+
+1) 第三种和第四种返回的是结构体指针
+2) 结构体指针访问字段的标准方式是：(*结构体指针)字段名
+3) go做了简化，也支持”结构体指针.字段名“,比如monster3.Age = 17，更加符合程序员的使用习惯。其实是Go底层对monster3.Age做了转化成(*monster3).Age = 17
+
+###### 10.1.9 结构体的细节说明
+
+1) 结构体的所有字段在内存中是连续分布的。结构体的字段如果是指针类型，其本身地址是连续的，但是指针指向的地址不一定连续，没有直接关系。
+2) 结构体是用户单独定义的类型，和其他类型进行转换时需要有完全相同的字段（字段名称，个数和类型）
+```go
+package main
+
+import "fmt"
+
+type A struct {
+	Num int
+}
+type B struct {
+	Num int
+}
+func main()  {
+	var a A
+	var b B
+	a = A(b)//可以转换，需保证结构体字段完全一样
+	fmt.Println(a,b)
+}
+```
+3) 结构体进行type重新定义（相当于取别名），Golang认为是新的数据类型，但是可以强转。
+```go
+type Student struct {
+	score float64
+}
+
+type Stu Student
+
+var stu1 Student
+var stu2 Stu
+stu2 = stu1//不行，二者类型不一样，可以写stu2 = Stu(stu1)
+```
+4) struct的每个字段上，可以写上一个tag,该tag可以通过反射机制获取，常见的使用场景就是序列化和反序列化
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+)
+
+type Student struct {
+	Name string	`json:"name"`//tag
+	Score float64 `json:"score"`
+}
+
+func main()  {
+	var Stu1 = Student{"小明",68.0}
+	json1,_ := json.Marshal(Stu1)
+	fmt.Println("json",string(json1))
+}
+```
+
+#### 10.2 方法
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ## n. 接口（interface）
@@ -2160,8 +2415,6 @@ func main()  {
     继承满足is - a 关系，而接口只需满足 like -a 关系。
 （3）接口在一定程度上实现代码解耦:
 ```
-
--------------------p225---------------------
 
 
 
