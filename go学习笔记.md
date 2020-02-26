@@ -2266,7 +2266,207 @@ func (recevier type) 方法名称(参数列表) (返回值列表) {
 2) 编写结构体字段
 3) 编写结构体方法
 
-###### 10.3.2 工厂模式
+#### 10.4 工厂模式
+
+Golang的结构体没有构造函数，通常需要工厂模式来解决这个问题。
+
+**看一个需求**
+
+一个结构体的声明是这样的：
+
+```go
+package model
+
+type Student struct{
+	Name string
+}
+```
+在这里的Student的首先字母大写，如果我们想在其他包创建Student实例，就需要先引入model包，再创建Student实例就可以了。但是，
+如果小首写字母小写，就不行了。这时需要使用工厂模式来解决这个问题。
+
+###### 10.4.1 工厂模式解决上述问题
+
+使用工厂模式实现跨包创建结构体实例的案例：
+
+1) 如果model包的结构体变量首写字母大写，直接引入包再使用，没问题。
+
+student.go
+```go
+package model
+
+type Student struct{
+	Name string
+	Score float64
+}
+
+```
+main.go
+
+```go
+package main
+
+import (
+	"fmt"
+	"go_code/chapter11/factory/model"
+)
+
+func main()  {
+	var stu = model.Student{
+		Name:"tom",
+		Score:79.5,
+	}
+	fmt.Println(stu)
+}
+```
+2) 如果model包的结构体变量首写字母小写，引入包后不能直接使用，使用工厂模式解决问题：
+
+student.go
+```go
+package model
+
+type teacher struct {
+	Name string
+	Subject string
+}
+
+func NewTeacher(name, subject string) *teacher  {
+	return &teacher{
+		name:  name,
+		Subject: subject,
+	}
+}
+
+//如果Name首写字母小写，则在其他包不可以直接使用，我们可以提供一个方法
+
+func (t *teacher) GetName() string {
+	return t.name
+}
+```
+main.go
+
+```go
+package main
+
+import (
+	"fmt"
+	"go_code/chapter11/factory/model"
+)
+
+func main()  {
+	//工厂模式
+	var tea = model.NewTeacher("marry","语文")
+	fmt.Println(*tea)
+	fmt.Println("name=",tea.GetName(),"subject=",tea.Subject)
+}
+```
+
+#### 10.5 Golang面向对象的三大特性
+Golang仍然有面向对象编程的继承，封装，多态的特性，只是实现的方式和其他OOP语言不一样。
+
+###### 10.5.1 封装（encapsulation）
+封装就是把抽象出来的字段和对字段的操作（方法）封装在一起，数据被保护在内部，程序的其他包只有通过被授权的方法，才能对字段进行操作。
+Golang开发并没有特别强调封装，其本身对面向对象做了简化。
+**封装的优点：**
+
+1) 隐藏实现细节
+2) 可以对数据进行验证，保证安全合理。
+
+**如何封装：**
+
+1) 对结构体中的属性进行封装
+2) 通过方法，包实现封装
+
+**封装实现步骤：**
+
+1) 将结构体，字段的首写字母小写
+2) 给结构体所在的包提供一个工厂模式的函数，类似其他语言的构造函数。
+3) 提供一个首写字母大写的Set方法，用于对属性判断并赋值
+```go
+func (变量名 结构体类型名)SetXxx(参数列表) (返回值列表) {
+    //验证逻辑
+    变量名.字段名 = 参数
+}
+```
+4) 提供一个首写字母大写的Get方法，用于获取属性
+```go
+func (变量名 结构体类型名)GetXxx(参数列表) (返回值列表) {
+    //验证逻辑
+    return 变量名.字段名
+}
+```
+
+###### 10.5.2 继承
+
+**继承的基本介绍：**
+
+继承可以解决代码复用问题。当多个结构体有相同的属性和方法时，可以从这些结构体中抽象出结构体（比如刚才的Student），在该结构体中定义这些相同的
+属性和方法。
+
+其他结构体不需要重新定义这些属性和方法，只需要嵌套一个Student匿名结构体即可。
+
+也就是说：在Golang中，如果一个struct嵌套了另一个匿名结构体，那么这个结构体可以直接访问匿名结构体的属性和方法，从而实现了继承。
+
+**基本语法：**
+
+```go
+type Goods struct {
+    Name string
+    price int
+}
+
+type Book struct{
+    Writer string
+    Goods //这里嵌套了Goods结构体
+} 
+```
+**继承的优点**
+
+1) 代码复用性提高了
+2) 代码扩展性和维护性提高了
+
+**继承的深入讨论**
+1) 结构体可以使用嵌套匿名函数结构体的所有字段和方法，即：在同一个包里面，首字母大写或者小写的属性和字段都可以使用
+2) 匿名结构体字段访问可以简化
+```go
+func main(){
+    var b bstruct
+    b.A.name = "tom"
+    b.A.Age = 11
+   b.A.Hello()
+
+}
+
+func main(){
+    var b bstruct
+    b.name = "tom"
+    b.Age = 11
+    b.Hello()
+
+}
+```
+说明：当我们直接通过b访问字段或者方法时，其执行流程：比如b.name,编译器首先会看b的类型有没有Name，如果有，则直接调用B类型Name
+     字段，如果没有就去看B中嵌入的匿名结构体A有没有声明Name，如果有就调用，没有就继续查找，如果都找不到就报错。
+3) 当结构体和匿名结构体有相同的属性或者方法时，编译器采用就近访问原则访问，如果希望访问匿名结构体的字段和方法，可以通过匿名结构体
+名来区分。
+4) 结构体嵌入两个（或多个）匿名结构体，如两个匿名结构体有相同的字段和方法（同时结构体本身没有同名的属性和方法），在访问时，就必须明确
+指明匿名结构体名字，否则报错。
+```go
+type A struct {
+    Name string
+    Age int
+}
+type B struct {
+    Name string
+    Score int
+}
+type C struct{
+    A
+    B
+}  
+```
+###### 10.5.3 封装
+
+
 
 ## n. 接口（interface）
 #### n.1 基本介绍
