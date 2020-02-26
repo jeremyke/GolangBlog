@@ -2464,12 +2464,114 @@ type C struct{
     B
 }  
 ```
-###### 10.5.3 封装
+5) 如果一个结构体嵌套了一个有名结构体，这种模式就是组合，如果是组合关系，那么在访问组合的结构体的属性和方法时，必须带上结构体名字。
+```go
+type A struct {
+    Name string
+    Age int
+}
+type C struct {
+    a A
+} 
+func main() {
+    var c1 C
+    c1.a.Name = "aaaa"
+}
+```
+6) 嵌套匿名结构体后，也可以在创建结构体实例时，直接指定各个匿名函数结构体字段的值。
 
+```go
+package main
 
+import (
+	"fmt"
+)
+type Goods struct {
+	Name string
+	Price float64
+}
 
-## n. 接口（interface）
-#### n.1 基本介绍
+type Brand struct {
+	Name string
+	Address string
+}
+
+type Tv struct {
+	Goods
+	Brand
+}
+
+type Tv2 struct {
+	*Goods
+	*Brand
+}
+
+func main()  {
+	tv := Tv{
+		Goods{
+				Name:"电视机",
+				Price:199.9,
+		},
+		Brand{
+				Name:"LG",
+				Address:"韩国",
+		},
+	}
+	tv2 := Tv2{
+		&Goods{
+			Name:  "手机",
+			Price: 299.5,
+		},
+		&Brand{
+			Name:    "小米",
+			Address: "北京",
+		},
+	}
+
+	fmt.Println(tv)
+	fmt.Println(*tv2.Goods,*tv2.Brand)
+}
+```
+6) 在结构体中可以嵌入基本数据类型。
+```go
+type Person struct {
+    Name string
+    Age int
+    int//不能再有int字段了，只能有一个。
+    n int
+}
+
+func main(){
+    var p1 Person
+    p1.int = 1
+    p1.n = 40
+}
+```
+
+**多重继承**
+
+如果一个struct嵌套了多个匿名结构体，那么该结构体可以直接访问嵌套的匿名结构体的属性和方法，从而实现多重继承。但是尽量不要使用多重继承。
+
+```go
+type Goods struct {
+	Name string
+	Price float64
+}
+
+type Brand struct {
+	Name string
+	Address string
+}
+//继承了2个stuct
+type Tv struct {
+	Goods
+	Brand
+}
+```
+
+###### 10.5.3 接口（interface）
+
+**基本介绍**
 
 接口类型定义了一组方法，但是这些不需要实现。而且接口中不能包含任何变量。在自定义类型中需要实现的接口的时候，才写具体的方法。
 
@@ -2496,7 +2598,7 @@ func (m 自定义类型) method2(参数列表)返回值列表{
 （2）Golang的接口不需要显示实现。只要一个变量，含有接口的所有方法，那么这个变量就实现了这个接口。因此接口中没有implement关键字。
 ```
 
-#### n.2 注意事项和细节说明
+**注意事项和细节说明**
 
  - （1）接口路本身不能创建实例，但是可以指向一个实现了该接口的自定义类型的变量（实例）。也可以这样描述：一个自定义类型，只有实现了某个
  接口，才能将该自定义类型的实例赋值给该接口类型
@@ -2645,10 +2747,11 @@ fmt.Println(t)
 //221
 ```
 
-#### n.3 接口的实践
+**接口的实践**
 > 参考chapter11/sliceorder
 
-#### n.3 接口实现和继承的比较
+**接口实现和继承的比较**
+
 - 代码案例
 ```go
 package main
@@ -2699,6 +2802,188 @@ func main()  {
     继承满足is - a 关系，而接口只需满足 like -a 关系。
 （3）接口在一定程度上实现代码解耦:
 ```
+
+###### 10.5.4 多态
+
+**基本介绍：**
+
+实例具有多种形态。在Golang中多态特征是通过接口实现的。可以按照统一的接口来调用不同的实现，这时接口变量就呈现多种形态。
+
+**接口体现多态特征：**
+
+1) 多态参数
+
+在前面的Usb接口实例中，Usb usb,即可以接收搜集变量，又可以接收相机变量，就体现了Usb的多态
+```go
+//编写一个方法Working 方法，接收一个Usb接口类型变量
+//只要是实现了 Usb接口 （所谓实现Usb接口，就是指实现了 Usb接口声明所有方法）
+func (c Computer) Working(usb Usb) {
+
+	//通过usb接口变量来调用Start和Stop方法
+	usb.Start()
+	usb.Stop()
+}
+```
+
+2) 多态数组
+
+在Usb数组中，存放Phone结构体和Camera结构体变量，示例代码如下。Phone还有一个特有的方法call(),请遍历usb数组，如果是Phone变量，除了
+调用usb接口声明的方法外，还需要调用Phone特有的方法call()
+```go
+package main
+
+import (
+	"fmt"
+)
+
+//声明/定义一个接口
+type Usb interface {
+	//声明了两个没有实现的方法
+	Start()
+	Stop()
+}
+
+type Phone struct {
+	Name string
+}
+
+//让Phone 实现 Usb和usb2接口的方法(同时实现2个接口)
+func (p Phone) Start() {
+	fmt.Println("手机开始工作。。。")
+}
+func (p Phone) Stop() {
+	fmt.Println("手机停止工作。。。")
+}
+
+type Camera struct {
+	Name string
+}
+
+//让Camera 实现   Usb接口的方法
+func (c Camera) Start() {
+	fmt.Println("相机开始工作~~~。。。")
+}
+func (c Camera) Stop() {
+	fmt.Println("相机停止工作。。。")
+}
+
+func main() {
+	var usrArr [3]Usb//多态数组
+	usrArr[0] = Phone{"vivo"}
+	usrArr[1] = Phone{"mi"}
+	usrArr[2] = Camera{"尼康"}
+	fmt.Println(usrArr)
+
+}
+```
+**类型断言**
+
+```go
+package main
+
+import (
+
+)
+
+type Point struct {
+	x int
+	y int
+}
+
+func main(){
+	var a interface{}
+	var point Point = Point{1,2}
+	a = point
+	var b Point
+	//b = a//这样直接赋值是不对的，因为a是空接口类型，而b是point类型，这时需要类型断言
+	b = a.(Point)//类型断言
+}
+```
+类型断言是由于接口是一般类型，不知道具体类型，如果要转成具体类型，就需要使用类型断言。具体如下：
+```go
+var t float32 //float32也可以是其他类型，比如Point
+
+var x interface{}
+x = t
+y,ok := x.(float32)//只能转为x原先的类型，不能随便转
+if ok==true {
+    fmt.Println("success")
+}else {
+    fmt.Println("fail")
+}
+```
+- 类型断言的实践
+对Usb接口案例改进：给Phone结构体增加一个特有的方法call(),当Usb接口接收的是Phone变量时，还需要调用call方法。
+```go
+package main
+
+import (
+	"fmt"
+)
+
+//声明/定义一个接口
+type Usb interface {
+	//声明了两个没有实现的方法
+	Start()
+	Stop()
+}
+
+type Phone struct {
+	Name string
+}
+
+//让Phone 实现 Usb和usb2接口的方法(同时实现2个接口)
+func (p Phone) Start() {
+	fmt.Println("手机开始工作。。。")
+}
+func (p Phone) Stop() {
+	fmt.Println("手机停止工作。。。")
+}
+func (p Phone) Call() {
+	fmt.Println("手机打电话。。。")
+}
+
+type Camera struct {
+	Name string
+}
+
+//让Camera 实现   Usb接口的方法
+func (c Camera) Start() {
+	fmt.Println("相机开始工作~~~。。。")
+}
+func (c Camera) Stop() {
+	fmt.Println("相机停止工作。。。")
+}
+
+type Computer struct {
+
+}
+
+func (c Computer) working(u Usb)  {
+	u.Start()
+	//如果usb是Phone的实例，还需要调用call方法
+	if phone,ok := u.(Phone);ok==true {
+		phone.Call()
+	}
+	u.Stop()
+}
+
+func main() {
+	var usrArr [3]Usb//多态数组
+	usrArr[0] = Phone{"vivo"}
+	usrArr[1] = Phone{"mi"}
+	usrArr[2] = Camera{"尼康"}
+	fmt.Println(usrArr)
+	var c Computer
+	for _,v := range usrArr {
+		c.working(v)
+	}
+}
+```
+
+
+
+
 
 
 
