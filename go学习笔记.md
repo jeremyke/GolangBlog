@@ -2829,6 +2829,7 @@ func (c Computer) Working(usb Usb) {
 
 在Usb数组中，存放Phone结构体和Camera结构体变量，示例代码如下。Phone还有一个特有的方法call(),请遍历usb数组，如果是Phone变量，除了
 调用usb接口声明的方法外，还需要调用Phone特有的方法call()
+
 ```go
 package main
 
@@ -2899,7 +2900,9 @@ func main(){
 	b = a.(Point)//类型断言
 }
 ```
+
 类型断言是由于接口是一般类型，不知道具体类型，如果要转成具体类型，就需要使用类型断言。具体如下：
+
 ```go
 var t float32 //float32也可以是其他类型，比如Point
 
@@ -2912,8 +2915,11 @@ if ok==true {
     fmt.Println("fail")
 }
 ```
+
 - 类型断言的实践
+
 对Usb接口案例改进：给Phone结构体增加一个特有的方法call(),当Usb接口接收的是Phone变量时，还需要调用call方法。
+
 ```go
 package main
 
