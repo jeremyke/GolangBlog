@@ -1765,7 +1765,7 @@ map是key-value的数据结构，又称为字段或者关联数组。类型java�
 #### 9.1 map的声明
 ###### 9.1.1 基本语法
 
-var map变量名 map[key数据类型]值数据类型
+var map变量名 map[key数据类型]value数据类型
 
 - key是什么数据类型：
 

@@ -37,7 +37,7 @@ func main()  {
 
 ```
 
-#### 14.2 读取文件的应用实例
+#### 14.3 读取文件的应用实例
 
 1) 读取文件的内容，并显示在终端（带缓冲区的方式）
 
@@ -78,7 +78,7 @@ func main()  {
 }
 ```
 
-#### 14.3 写文件的应用实例
+#### 14.4 写文件的应用实例
 
 func OpenFile(name string,flag int,perm FileMode)(file *File,err error)
 
@@ -137,3 +137,180 @@ func PathExists(path string)(bool,error){
     return false,err
 }
 ```
+
+#### 14.5 命令行参数
+
+os.Args是一个string切片，用来存储所有的命令行参数。第一个是程序名称，后面的都是参数。
+
+###### 14.5.1 应用案例
+
+```go
+func main()  {
+	fmt.Println("命令行参数是：",len(os.Args))
+	for k,v := range os.Args {
+		fmt.Printf("args[%v]=%v\n",k,v)
+	}
+}
+```
+
+//输出：
+命令行参数是： 4
+args[0]=./main
+args[1]=asasd
+args[2]=fgfg
+args[3]=aaa
+
+###### 14.5.2 flag包用来解析命令行参数
+
+这种方法参数顺序可以随意,例如：mysql -u root -p 123 -h localhost 
+
+```go
+func main()  {
+	var user,pwd,host string
+	var port int
+	//这种方法参数顺序可以随意
+	flag.StringVar(&user,"u","","用户名")
+	flag.StringVar(&pwd,"pwd","","密码")
+	flag.StringVar(&host,"h","localhost","主机名")
+	flag.IntVar(&port,"port",3306,"端口号")
+
+	flag.Parse()//转换，必须调用该方法。
+
+	fmt.Printf("user=%v pwd=%v host=%v port=%v",user,pwd,host,port)
+}
+```
+
+#### 14.6 json基本介绍
+
+json是一种轻量级的数据交换格式，易于人阅读和编写，同时也易于机器解析和生成。
+
+json有效的提升网络传输效率，通常程序在网络传输时会先将数据（结构体，map等）序列化成json字符串，到接收方得到json字符串时，再
+反序列化恢复成原来的数据类型（结构体，map等），这种方式已然成为各个语言的标准。
+
+Golang--（序列化）-->json字符串--（网络传输）-->程序--（反序列化）-->其他语言
+
+###### 14.6.1 json序列化
+
+- 结构体序列化
+
+````go
+type Monster struct {
+	Name string `json:"name"`
+	Age int	`json:"age"`
+	Birthday string
+	Sal float64
+	skill string
+}
+
+func testStruct()  {
+	monster := Monster{
+		Name:     "蒋冬莲",
+		Age:      24,
+		Birthday: "0703",
+		Sal:      8000.0,
+		skill:    "测试",
+	}
+	data,err := json.Marshal(&monster)
+	if err != nil {
+		fmt.Printf("序列化失败，%v",err)
+	}else{
+		fmt.Printf("序列化后结果为：%v\n",string(data))
+	}
+}
+````
+
+- map序列化
+
+```go
+func testMap()  {
+	var a map[string]interface{}//表示k为string,v为任意类型
+	a = make(map[string]interface{})
+	a["name"] = "呵呵"
+	a["age"] = 12
+	a["address"] = "中国"
+	data,err := json.Marshal(a)
+	if err != nil {
+		fmt.Printf("序列化失败，%v",err)
+	}else{
+		fmt.Printf("序列化后结果为：%v\n",string(data))
+	}
+
+}
+```
+- slice序列化
+
+```go
+func testSlice()  {
+	var stringSlice []map[string]interface{}
+	var m1 map[string]interface{}
+	m1 = make(map[string]interface{})
+	m1["name"] = "蒋冬莲"
+	m1["sex"] = "女"
+	m1["address"] = "珠海"
+	stringSlice = append(stringSlice,m1)
+	var m2 map[string]interface{}
+	m2 = make(map[string]interface{})
+	m2["name"] = "柯丽萍"
+	m2["sex"] = "女"
+	m2["address"] = "深圳"
+	stringSlice = append(stringSlice,m2)
+	data,err := json.Marshal(stringSlice)
+	if err != nil {
+		fmt.Printf("序列化失败，%v",err)
+	}else{
+		fmt.Printf("序列化后结果为：%v\n",string(data))
+	}
+}
+```
+
+###### 14.6.2 json反序列化
+
+- 反序列化成结构体
+
+```go
+func testStruct()  {
+	str := "{\"name\":\"蒋冬莲\",\"age\":24,\"Birthday\":\"0703\",\"Sal\":8000}"
+	var monster Monster
+	err := json.Unmarshal([]byte(str),&monster)
+	if err != nil {
+		fmt.Printf("反序列化失败，%v",err)
+	}else{
+		fmt.Printf("反序列化后结果为：%v\n",monster)
+	}
+}
+```
+
+- 反序列化成map
+
+```go
+func testMap()  {
+	str := "{\"address\":\"中国\",\"age\":12,\"name\":\"呵呵\"}"
+	var a map[string]interface{}//反序列化操作map不需要make操作,在反序列化是会自动make
+	err := json.Unmarshal([]byte(str),&a)
+	if err != nil {
+		fmt.Printf("map反序列化失败，%v",err)
+	}else{
+		fmt.Printf("map序列化后结果为：%v\n",a)
+	}
+
+}
+```
+
+- 反序列化成slice
+
+```go
+func testSlice()  {
+	str := "[{\"address\":\"珠海\",\"name\":\"蒋冬莲\",\"sex\":\"女\"},{\"address\":\"深圳\",\"name\":\"柯丽萍\",\"sex\":\"女\"}]"
+
+	var stringSlice []map[string]interface{}
+
+	err := json.Unmarshal([]byte(str),&stringSlice)
+	if err != nil {
+		fmt.Printf("slice反序列化失败，%v",err)
+	}else{
+		fmt.Printf("slice反序列化后结果为：%v\n",stringSlice)
+	}
+}
+```
+
+
