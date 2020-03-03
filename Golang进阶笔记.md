@@ -264,6 +264,7 @@ func testSlice()  {
 ```
 
 ###### 14.6.2 json反序列化
+>这里Unmarshal要将json数据解码写入一个指针。
 
 - 反序列化成结构体
 
@@ -312,5 +313,105 @@ func testSlice()  {
 	}
 }
 ```
+## 15.单元测试
+
+在工作中，我们常常需要确认一个函数或者一个模块的结果是否正确，往往需要做单元测试。
+
+#### 15.1 基本介绍
+
+Golang自带一个轻量级的测试框架testing和自带的go test命令来实现单元测试和性能测试，可以基于这个框架写针对相应函数的测试用例，
+也可以基于这个框架写相应的压力测试用例。通过单元测试，解决如下问题：
+1) 确保每个函数是可运行的，且运行结果正确
+2) 确保写出来的代码性能良好
+3) 单元测试能及时发现程序设计或者实现的逻辑错误，使得问题及早的暴露，便于问题定位解决，而性能测试的重点在于发现程序设计上的一些
+    问题，使得程序能够在高并发的情况下保持稳定。
+
+#### 15.2 快速入门
+
+使用golang的单元测试对addUpper和sub函数进行测试
+
+cal.go
+
+```go
+package main
+
+import (
+
+)
+
+func AddUpper(n int) int {
+	res := 0
+	for i := 0; i<=n; i++ {
+		res += i
+	}
+	return res
+}
+
+func getSub(n,m int) int {
+	return n-m
+}
+
+```
+
+cal_test.go
+
+```go
+package main
+
+import (
+	_"fmt"
+	"testing"
+)
+
+func TestAddUpper(t *testing.T)  {
+	res := AddUpper(10)
+	if res != 55 {
+		//fmt.Printf("AddUpper(10)执行错误，期望值=%v 实际值=%v\n",55,res)
+		t.Fatalf("AddUpper(10)执行错误，期望值=%v 实际值=%v\n",55,res)
+	}
+	//正确就输出日志
+	t.Logf("AddUpper(10)执行正确")
+}
+
+```
+
+sub_test.go
+
+```go
+package main
+
+import (
+	"testing"
+)
+
+func TestGetSub(t *testing.T)  {
+	res := getSub(10,2)
+	if res != 8 {
+		t.Fatalf("getSub(10,2)执行错误，期望值=%v 实际值=%v\n",8,res)
+	}
+	//正确就输出日志
+	t.Logf("getSub(10,2)执行正确")
+}
+
+```
+
+**单元测试的原理：**
+1) testing框架先将xxx_test.go的文件引入
+2) 在main函数里面调用TestXXX()函数
 
 
+#### 15.3 单元测试细节说明
+
+1) 测试用例文件名必须以_test.go结尾，比如cal_test.go,cal不是固定的。
+2) 测试用例函数名必须以Test开头，一般是Test+测试函数名
+3) TestAddUpper(t *Testing.T)的形参类型必须是*Testing.T
+4) 一个测试用例文件中，可以有多个测试用例函数。
+5) 运行测试用例指令：
+    （1）cmd>go test(如果运行正确，无日志，错误时，输出日志)
+    （2）cmd>go test -v (无论运行正确或者错误，都输出日志)
+6) 当出现错误时，可以使用t.Fatalf来格式化输出错误信息，并退出程序
+7) t.Logf方法输出相应的日志
+8) 测试用例函数不需要main函数
+9) Pass表示测试咏柳运行成功，fail表示失败，都成功才为成功。
+10) 测试单个文件，一定要带上被测试的原文件：go test -v ./cal_test.go
+11) 测试单个方法：go test -v -test.run TestAddUpper
