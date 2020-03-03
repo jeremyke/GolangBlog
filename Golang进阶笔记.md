@@ -415,3 +415,124 @@ func TestGetSub(t *testing.T)  {
 9) Pass表示测试咏柳运行成功，fail表示失败，都成功才为成功。
 10) 测试单个文件，一定要带上被测试的原文件：go test -v ./cal_test.go
 11) 测试单个方法：go test -v -test.run TestAddUpper
+
+## 16.goroutine(协程)和channel(管道)
+
+#### 16.1 goroutine基本介绍
+
+**并发和并行：**
+
+1) 多线程程序在单核CPU上运行，微观时间点上只有一个线程在执行，就是并发。
+2) 多线程程序在多核CPU上运行，微观时间点上有CPU核数个线程在执行，就是并行。
+
+**Go协程和Go主线程：**
+
+1) Go主线程：一个Go线程上，可以起多个协程，你可以这样理解，协程是轻量级的线程，编译器做的优化。
+
+2) Go协程的特点：
+    （1）有独立的栈空间
+    （2）共享程序堆空间
+    （3）调度由用户控制（协程的开启和关闭是程序员控制的）
+    （4）协程是轻量级的线程
+    
+#### 16.2 goroutine快速入门
+
+在主线程中开启一个goroutine,该协程每隔1秒输出“hello world”,在主线程中也每隔一秒输出“hello golang”,输出10次后，退出程序。
+
+```go
+package main
+
+import (
+	"fmt"
+	"strconv"
+	"time"
+)
+
+func test()  {
+	for i:=0; i<10; i++ {
+		fmt.Printf("hello world " + strconv.Itoa(i) + "\n")
+		time.Sleep(time.Second)
+	}
+}
+
+func main()  {
+	go test()//开启一个协程执行test函数
+	for i:=0; i<10; i++ {
+		fmt.Printf("hello golang " + strconv.Itoa(i) + "\n")
+		time.Sleep(time.Second)
+	}
+}
+
+```
+
+输出结果：
+
+```text
+hello golang 0
+hello world 0
+hello world 1
+hello golang 1
+hello golang 2
+hello world 2
+hello golang 3
+hello world 3
+hello golang 4
+hello world 4
+hello golang 5
+hello world 5
+hello world 6
+hello golang 6
+hello golang 7
+hello world 7
+hello world 8
+hello golang 8
+hello world 9
+hello golang 9
+
+```
+
+**说明:**
+
+1) 如果主线程退出了，则协程即使没有执行完也会退出
+
+2) 当然协程也可以在主线程退出前，自己完成了任务就提前退出了。
+
+**小结：**
+
+1) 主线程是一个物理线程，直接作用在CPU上的。是重量级的，非常耗费cpu资源。
+2) 协程是从主线程开启的，是轻量级的线程，是逻辑态。对资源消耗相对小。
+3) Golang的协程机制是重要的特点，可以轻松开启上万个协程。其他编程语言的并发机制是一般基于线程的，开启过多的线程，
+    资源耗费大，这里就突出了Golang的优势。
+    
+
+#### 16.3 goroutine的调度模型
+
+###### 16.3.1 MPG基本介绍
+
+M:操作系统主线程（物理线程）；P:协程执行需要的上下文；G:协程
+
+###### 16.3.2 MPG运行的状态1：
+
+1) 当前程序有3个M,如果3个M都在一个CPU上执行，就是并发，如果分别在不同CPU上执行就是并行。
+2) M1，M2,M3正在执行一个G,M1的协程队列有3个，M2的协程队列有3个，M3的协程队列有2个
+3) Go的协程是轻量级的线程，是逻辑态的，而C/java的多线程，往往是内核态的，比较重量级，几千个就可能耗光cpu
+
+###### 16.3.3 MPG运行的状态2：
+
+M0在执行一个G0协程，另外有3个协程在队列中等待，如果G0协程阻塞了（IO）,这时就会创建一个M1的主线程，并且将M0等待的
+3个协程挂到M1上执行，M0继续等待G0的IO。等到M0不阻塞了，M0主线程就会被就会被放置到空闲的主线程继续执行。
+
+#### 16.3 设置Golang运行的CPU个数
+
+```go
+func main()  {
+	cpuMum := runtime.NumCPU()
+	fmt.Println(cpuMum)
+
+	//设置使用cpu个数
+	runtime.GOMAXPROCS(cpuMum-1)
+	fmt.Println("ok")
+}
+```
+
+
