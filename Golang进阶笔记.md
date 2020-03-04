@@ -522,7 +522,7 @@ M:操作系统主线程（物理线程）；P:协程执行需要的上下文；G
 M0在执行一个G0协程，另外有3个协程在队列中等待，如果G0协程阻塞了（IO）,这时就会创建一个M1的主线程，并且将M0等待的
 3个协程挂到M1上执行，M0继续等待G0的IO。等到M0不阻塞了，M0主线程就会被就会被放置到空闲的主线程继续执行。
 
-#### 16.3 设置Golang运行的CPU个数
+#### 16.4 设置Golang运行的CPU个数
 
 ```go
 func main()  {
@@ -534,5 +534,282 @@ func main()  {
 	fmt.Println("ok")
 }
 ```
+
+#### 16.5 channel(管道)
+
+需求：计算1-200的各个阶乘，并且把各个数的阶乘放入map中。
+
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+)
+var (
+	totalMap = make(map[int]int,200)
+)
+
+func jiecheng(n int) {
+	res := 1
+	for j:=n; j>0;j--{
+		res *= j
+	}
+	totalMap[n] = res
+}
+
+func main()  {
+	for i:= 200;i>0;i-- {
+		go jiecheng(i)
+	}
+	time.Sleep(time.Second*20)//fatal error: concurrent map writes
+	fmt.Println(totalMap)
+}
+
+```
+
+**问题：**
+
+1) 使用goroutine来完成，效率高，但是会造成并发/并行的安全问题fatal error: concurrent map writes
+2) 这里就要提出了不同goroutine是如何通讯的
+3) 多个goroutine竞争资源可以使用go run -race 文件名
+
+###### 16.5.1 不同goroutine如何通讯
+
+1) 全局变量加锁
+2) channel
+
+###### 16.5.2 使用全全局变量加锁同步改进程序
+
+- 因为没有对全局变量m加锁，因此会会出现资源争夺的问题，代码出现错误，提示：concurrent map writes
+- 解决方案：加互质锁
+- 我们说的阶乘很大，结果会越界，可以将求阶乘改为sum += uint64(i)
+
+```go
+package main
+
+import (
+	"fmt"
+	"sync"
+	"time"
+)
+var (
+	totalMap = make(map[int]int,200)
+	//声明全局互质锁synchornized
+	lock sync.Mutex
+)
+
+func jiecheng(n int) {
+	res := 1
+	for j:=n; j>0;j--{
+		res *= j
+	}
+	lock.Lock()//加锁
+	totalMap[n] = res
+	lock.Unlock()//解锁
+}
+
+func main()  {
+	for i:= 20;i>0;i-- {
+		go jiecheng(i)
+	}
+	time.Sleep(time.Second*10)//fatal error: concurrent map writes
+    //这里读取的时候也需要加锁
+	lock.Lock()
+	for k,v := range totalMap {
+		fmt.Printf("%d! = %v\n",k,v)
+	}
+	lock.Unlock()
+}
+
+```
+
+###### 16.5.3 使用channel解决不同协程间的通讯
+
+**为什么需要channel**
+
+前面使用全局变量加锁同步来解决goroutine问题，但并不完美：
+1) 主线程在等待所有goroutine全部完成的时间难以确认，可能10秒并没有完成。
+2) 如果主线程休眠时间长了，会加长等待时间，如果等待时间短了，可能goroutine处于工作状态，这时也会随着主线程的退出而销毁
+3) 通过全局变量加锁同步来实现通讯，也并不利于多个协程对全局变量的读写操作
+
+**channel的介绍**
+
+1) channel本质是一个数据结构-队列
+2) 数据是先进先出（FIFO）
+3) 线程安全，多goroutine访问时，不需要加锁，就是说channel本身是线程安全的。
+4) channel有类型的，一个string的channel只能存放string类型数据。
+
+###### 16.5.4 管道的基本使用
+
+定义：
+
+```go
+var intChan chan int (intChan管道用于存放int数据)
+var mapChan chan map[int]string
+var perChan chan Person
+var perChan2 chan *Person
+```
+说明：
+
+1) channel是引用类型
+2) channel必须初始化才能写入数据，即make后才能使用
+3) 管道是有类型的，intChan只能写入int
+
+channel初始化：
+
+```go
+var intChan chan int
+intChan = make(chan int,10)
+```
+
+向channel写入数据:
+
+```go
+var intChan chan int
+intChan = make(chan int,10)
+num := 999
+intChan<-10
+intChan<-num
+```
+
+```go
+func main()  {
+	//声明
+	var intChan chan int
+	intChan = make(chan int,3)
+	fmt.Println(intChan)//0xc42007c080 是一个地址，引用类型
+	//写入
+	//往channel写入数据时不能超过容量cap！！！
+	intChan <- 10
+	num := 200
+	intChan <- num
+	//取出数据
+	num2 := <- intChan
+	fmt.Println(num2)//最先写入的数据被取出来了，取完了之后会报错！！！
+	//d打印
+	fmt.Println(len(intChan),cap(intChan))
+}
+```
+
+###### 16.5.5 管道的注意细节
+
+1) channel只能存放指定数据类型的数据
+2) channel的数据放满之后，不能再放入了
+3) channel取出数据后，可以继续放入
+4) 在没有使用协程的情况下，如果channel的数据取完之后，再取，就会包dead lock
+
+```go
+func main() {
+	allChan := make(chan interface{}, 3)
+	allChan <- 10
+	allChan <- "tom jack"
+	cat := Cat{
+		Name: "七七",
+		Age:  10,
+	}
+	allChan <- cat
+	<-allChan
+	<-allChan
+	newCat := <-allChan
+
+	fmt.Printf("newCat的类型是%T,值为%v\n", newCat,newCat)
+	//类型断言
+	a := newCat.(Cat)
+	fmt.Printf("newCat.Name=%v", a.Name)
+}
+```
+
+从空接口channel中取出数据时，需要使用类型断言。
+
+###### 16.5.6 channel的遍历和关闭
+
+channel的关闭：
+
+使用内置函数close可以关闭channel，当channel关闭后，就不能再向channel写数据了，但是仍然可以从该channel读取数据。
+
+channel的遍历（for-range）：
+
+1) 在遍历时，如果channel没有关闭，则会出现deadlock错误。
+2) 在遍历时，如果channel已经关闭，则会正常遍历数据，遍历完成后，就会退出遍历。
+
+```go
+func main() {
+	var intChan chan int
+	intChan = make(chan int,100)
+	for i:=0;i<100;i++ {
+		intChan <- i*2
+	}
+	//没有关闭管道会报错：fatal error: all goroutines are asleep - deadlock!
+	close(intChan)
+	for v := range intChan {
+		fmt.Println("v=",v)
+	}
+}
+```
+
+###### 16.5.7 goroutine和channel协同使用
+
+```go
+package main
+
+import (
+	"fmt"
+)
+
+func main()  {
+	intChan := make(chan int,50)
+	exitChan := make(chan bool,1)
+	go writeData(intChan)
+	go readData(intChan,exitChan)
+	//time.Sleep(time.Second*10)
+	for {
+		_, ok := <-exitChan
+		if !ok {
+			break
+		}
+	}
+}
+
+func writeData(intChan chan int)  {
+	for i:= 1;i<=50;i++ {
+		//time.Sleep(time.Second)
+		intChan <- i
+		fmt.Printf("writeData 写数据为%v\n",i)
+	}
+	close(intChan)
+}
+
+func readData(intChan chan int,exitChan chan bool)  {
+	for {
+		v,ok := <-intChan
+		if !ok {
+			break
+		}
+		//time.Sleep(time.Second)
+		fmt.Printf("readData 读到数据为%v\n",v)
+	}
+	//读完之后需要向exitChan写入数据true
+	exitChan <- true
+	close(exitChan)
+}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
