@@ -1,10 +1,6 @@
 package main
 
-import (
-	"fmt"
-)
-
-var flag = false
+import "fmt"
 
 //存放数据
 func putNum(numChan chan int) {
@@ -15,41 +11,44 @@ func putNum(numChan chan int) {
 }
 
 //取数据
-func readNum(numChan, resChan chan int) {
+func readNum(numChan chan int, resChan chan uint64, setChan chan bool) {
 	for {
 		num, ok := <-numChan
 		if !ok {
 			break
 		}
-		//time.Sleep(time.Second)
-		fmt.Printf("readData 读到数据为%v\n", num)
-		var total int
-		for i := num; i >= 1; i++ {
-			total += num
+		var total uint64
+		for i := num; i >= 1; i-- {
+			total += uint64(num)
 		}
 		resChan <- total
-		if len(resChan) == 2000 {
-			flag = true
-			close(resChan)
-		}
 	}
+	fmt.Println("有一个协程因为取不到数据就退出了")
+	setChan <- true
+
 }
 
 func main() {
 	numChan := make(chan int, 2000)
-	resChan := make(chan int, 2000)
-	//setChan := make(chan bool,1)
+	resChan := make(chan uint64, 2000)
+	setChan := make(chan bool, 8)
 	go putNum(numChan)
 	for i := 1; i <= 8; i++ {
-		go readNum(numChan, resChan)
+		go readNum(numChan, resChan, setChan)
 	}
+	go func() {
+		for i := 0; i < 8; i++ {
+			<-setChan
+		}
+		close(resChan)
+	}()
 	for {
-		if flag {
-			for v := range resChan {
-				fmt.Println("v=", v)
-			}
+		num, ok := <-resChan
+		if !ok {
 			break
 		}
+		fmt.Printf("结果为%v\n", num)
 	}
+	fmt.Println("主线程退出")
 
 }

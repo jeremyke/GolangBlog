@@ -809,7 +809,137 @@ func readData(intChan chan int,exitChan chan bool)  {
 
 要求统计1-200000的数字中，哪些是素数？一个协程写数字，4个协程写素数。
 
+```go
+package main
 
+import (
+	"fmt"
+)
+
+func readNum(intChan chan int) {
+	for i := 1; i <= 8000; i++ {
+		intChan <- i
+	}
+	close(intChan)
+}
+
+func getSuShu(intChan chan int, primeChan chan int, exitChan chan bool) {
+	for {
+		num, ok := <-intChan
+		if !ok {
+			break
+		}
+		flag := true
+		for i := 2; i < num; i++ {
+			if num%i == 0 { //不是素数
+				flag = false
+				break
+			}
+		}
+		if flag {
+			primeChan <- num
+		}
+	}
+	fmt.Println("有一个协程因为取不到数据就退出了")
+	//这个协程取完数据就向退出管道写入数据
+	exitChan <- true
+}
+
+func main() {
+	//创建3个管道
+	intChan := make(chan int, 8000)
+	primeChan := make(chan int, 1000)
+	exitChan := make(chan bool, 4)
+	//开启一个协程写入数据
+	go readNum(intChan)
+	//开启4个协程取出数据，并判断是否为素数
+	for i := 1; i <= 4; i++ {
+		go getSuShu(intChan, primeChan, exitChan)
+	}
+	//主线程在退出管道里面取出4个true，说明素数管道处理完毕
+	go func() {
+		for i:=0;i<4;i++ {
+			<- exitChan
+		}
+		close(primeChan)
+	}()
+	//遍历素数管道
+	for {
+		num,ok := <-primeChan
+		if !ok {
+			break
+		}
+		fmt.Printf("素数为%v\n",num)
+	}
+	fmt.Println("主线程退出")
+
+}
+
+```
+结论，使用go协程，比普通阻塞方法提高cpu个数倍。
+
+###### 16.5.10 channel使用细节
+
+1) channel可以声明为只读，或者只写性质。
+
+```go
+//默认情况下，管道是双向的
+	var chan1 chan int//可读可写
+
+	var chan2 chan<- int//只写
+
+	var chan3 <-chan int//只读
+```
+2) 使用select可以解决从管道取数据的阻塞问题
+
+传统方式，在不关闭管道时，遍历管道会导致deadlock.
+
+```go
+for {
+    select {
+        //这里如果intChan一直没有关闭，不会一直阻塞而deadlock
+        case v:= <-intChan :
+            fmt.Printf("读取数据为%v",v)
+        case v:= <-stringChan:
+            //...
+        default:
+            //都取不到数据的逻辑块
+    }
+}
+```
+3) goroutine中使用recover，解决协程中出现panic，导致整个程序崩溃问题。
+
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func sayHello()  {
+	for i:=0;i<10;i++ {
+		fmt.Printf("hello%v",i)
+	}
+}
+
+func test()  {
+	defer func() {
+		if err := recover();err!=nil {
+			fmt.Println("出错了:",err)
+		}
+	}()
+	var a map[int]string
+	a[0] = "sddddd"
+}
+
+func main()  {
+	go sayHello()
+	go test()
+	time.Sleep(time.Second)
+}
+
+```
 
 
 
