@@ -750,6 +750,8 @@ func main() {
 
 ###### 16.5.7 goroutine和channel协同使用
 
+开启一个writeData协程，向管道intChan中写入50个整数，开启一个readChan协程，从管道中读取writeData写入的数据。
+
 ```go
 package main
 
@@ -796,6 +798,16 @@ func readData(intChan chan int,exitChan chan bool)  {
 
 ```
 
+###### 16.5.8 goroutine和channel协同使用-阻塞
+
+如上述案例，如果intChan的cap为10，注释掉go readData(intChan,exitChan)函数。也就是说只是向管道写入数据，而没有读取数据，
+就会出现阻塞而dead lock,原因是intChan容量是10，而代码会写入50个数据，因此会阻塞在writeData的intChan<-i。
+
+总结：编译器运行时，发现一个管道只有写，没有读，则该管道会阻塞；写管道和读管道速度不一致，不会导致阻塞。
+
+###### 16.5.9 goroutine和channel协同使用-应用实例
+
+要求统计1-200000的数字中，哪些是素数？一个协程写数字，4个协程写素数。
 
 
 
