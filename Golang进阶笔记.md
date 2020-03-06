@@ -941,6 +941,204 @@ func main()  {
 
 ```
 
+## 17.反射
+
+#### 17.1 反射的引出
+
+1) 结构体json序列化后，为什么key-val的key值是结构体的tag的值，而不是字段的名称？用到反射
+
+2) 使用反射机制编写函数适配器，桥连接。
+```go
+test1 = func(v1 int,v2 int){
+    t.Log(v1,v2)
+}
+test2 = func(v1,v2 int,s string){
+    t.Log(v1,v2,s)
+}
+//适配器
+bridge := func(call interface{},args...interface{}){
+    //逻辑代码块
+}
+bridge(test1,1,2)
+bridge(test2,1,2,"test2")
+```
+#### 17.2 反射的基本介绍
+
+1) 反射可以在运行时动态获取变量的这种信息，比如变量的类型（type），类别（kind）
+2) 如果是结构体实例，还可以获取到结构体本身的信息（包括结构体字段，方法）
+3) 通过反射，可以修改变量的值，还可以调用关联的方法。
+4) 使用反射，需要import("reflect")
+
+#### 17.3 反射的重要函数和概念
+
+1) reflect.TypeOf(变量名)，获取变量的类型，返回reflect.Type类型
+2) reflect.ValueOf(变量名)，返回reflect.Value类型，reflect.Value是一个结构体类型。通过reflect.Value可
+    以获取到关于变量的很多信息。
+3) 变量，interface{}和reflect.Value是可以相互转换的，这点在实际开发中会经常使用到。
+
+```go
+type Stu struct {
+    Name string
+}
+var student Stu
+var num int
+func test(b interface{}){
+    //interface{}-->reflect.Value
+    rVal := reflect.ValueOf(b)
+    //reflect.Value-->interface
+    iVal := rVal.Interface()
+    //interface{}-->转换为原来的类型
+    v := iVal.(Stu)
+}
+```
+
+#### 17.4 快速入门
+
+1) 基本数据类型进行反射的基本操作
+
+```go
+package main
+
+import (
+	"fmt"
+	"reflect"
+)
+
+func reflectTest(b interface{})  {
+	//获取reflect.Type
+	rType := reflect.TypeOf(b)
+	fmt.Println("rType=",rType)//int
+	//获取reflect.Value
+	rValue := reflect.ValueOf(b)
+	fmt.Printf("rValue=%v 类型为：%T\n",rValue,rValue)//100 reflect.Value
+	//将reflect.Value-->interface{}
+	iv := rValue.Interface()
+	//interface{}-->原来的类型
+	num2 := iv.(int)
+	fmt.Println("num2=",num2)
+}
+
+func main()  {
+	num := 100
+	reflectTest(num)
+}
+
+```
+
+2) 结构体实例进行反射的基本操作
+
+```go
+package main
+
+import (
+	"fmt"
+	"reflect"
+)
+
+type Stu struct {
+	Name string
+	Age int
+}
+func reflectTest(b interface{})  {
+	//获取reflect.Type
+	rType := reflect.TypeOf(b)
+	fmt.Println("rType=",rType)//int
+	//获取reflect.Value
+	rValue := reflect.ValueOf(b)
+	fmt.Printf("rValue=%v 类型为：%T\n",rValue,rValue)//100 reflect.Value
+	//将reflect.Value-->interface{}
+	iv := rValue.Interface()
+	fmt.Printf("iv=%v 类型是：%T\n",iv,iv)
+	//interface{}-->原来的类型
+	student2 := iv.(Stu)
+	fmt.Printf("name=%v,age=%v",student2.Name,student2.Age)
+}
+
+func main()  {
+	student := Stu{
+		Name: "tom",
+		Age:  20,
+	}
+	reflectTest(student)
+}
+```
+
+#### 17.5 反射的细节
+
+1) reflect.Value.Kind,获取变量的类型，返回一个常量。比如：Int,Map,Struct...
+
+```go
+//获取变量对应的类别常量rValue.kind() 或者 rType.kind()
+kind1 := rType.Kind()
+kind2 := rValue.Kind()
+fmt.Printf("kind1=%v kind2=%v\n",kind1,kind2)//struct
+```
+2) Type是类型，kind是类别，Type和kind可能相同也可能不同。
+
+```go
+var num int = 10 //num的Type和Kind都是int
+var stu Student //stu的Type是main.Student ,kind是struct
+```
+3) 通过反射可以让变量在interface{}和reflect.Value之间相互换换，如上面案例。
+
+4) 使用反射的方式来获取变量的值，并返回对应类型，要求数据类型匹配，比如x是int,那么就应该使用reflect.Value(x).Int(),
+    而不能使用其他的，否则panic异常
+    
+5) 通过反射来修改变量，注意当使用SetXXX方法来设置，需要通过对应的指针类型来完成，这样才能改变传入的变量的值，同时需要
+    使用到relect.Value.Elem()方法
+    
+```go
+package main
+
+import (
+	"fmt"
+	"reflect"
+)
+func reflectTest(b interface{})  {
+	rValue := reflect.ValueOf(b)
+	//rValue.SetInt(20)//报错,因为此时传过来的是地址，所以rValue是个指针
+	rValue.Elem().SetInt(20)
+	fmt.Printf("rValue=%v",rValue.Elem().Int())
+
+
+}
+func main()  {
+	var num int = 100
+	reflectTest(&num)
+}
+
+```
+6) reflect.Value.Elem()就是对指针取地址的含义
+
+
+#### 17.6 反射的实践
+
+1) 使用反射来遍历结构体的字段，调用结构体的方法，并获取结构体标签的值：func (Value)Method(i int) Name,
+    func (Value) Call(in []value)[]value
+>案例缺失,后期补上！
+
+2) 定义一个适配器函数用作统一处理接口
+>案例缺失,后期补上！
+
+3) 使用反射操作任意结构体类型
+
+4) 使用反射创建并操作结构体
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
