@@ -1152,6 +1152,109 @@ Golang的主要设计目标之一就是面向大规模后端服务程序，网�
 2) 发送请求，接收服务器端返回的结果数据
 3) 关闭链接
 
+如上需求代码见src/go_code/chapter18/tcpdemo
+
+
+## 19. Golang操作Redis
+
+#### 19.1 安装第三方库
+
+先安装github,在GOPATH目录下，执行 go get github.com/garyburd/redigo/redis即可
+
+#### 19.2 入门案例
+
+1) string操作（SET/GET接口）
+
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/garyburd/redigo/redis"
+)
+
+func connect() redis.Conn {
+	//连接redis
+	c,err := redis.Dial("tcp","localhost:6379")
+	if err != nil {
+		fmt.Println("redis connect err:",err)
+	}
+	return c
+}
+
+func main()  {
+	c := connect()
+	defer c.Close()
+	//set
+	_,err2 := c.Do("Set","key2","七七团aa")
+	if err2 != nil {
+		fmt.Println("redis set err:",err2)
+		return
+	}
+	//get
+	r,err3 := redis.String(c.Do("Get","key2"))
+	if err3 != nil {
+		fmt.Println("redis get err:",err3)
+		return
+	}
+	fmt.Println(r)
+}
+```
+
+2) Hash操作(hget/hset)
+
+````go
+_,err = c.Do("Hset","user01","name","tom猫")
+````
+
+```go
+name,err3 := redis.String(c.Do("HGet","user01","name"))
+age,err4 := redis.Int(c.Do("HGet","user01","age"))
+```
+
+3) Hash操作(HMget/HMset)
+
+```go
+_,err2 := c.Do("HMSet","user02","name","蒋东莲","age",18)
+if err2 != nil {
+    fmt.Println("redis set err:",err2)
+    return
+}
+//HMget
+info,err3 := redis.Strings(c.Do("HMGet","user02","name","age"))
+if err3 != nil{
+    fmt.Println("redis get err:",err3)
+    return
+}
+
+for k,v := range info {
+    fmt.Printf("info[%d]=%s\n",k,v)
+}
+```
+
+4) Redis连接池
+
+说明：通过golang对redis操作还可以通过redis连接池：
+    1) 事先初始化一定数量的链接，放入连接池
+    2) 当Go需要操作Redis时，直接从Redis连接池取出链接就好了
+    3) 这样就节省了redis链接的时间，提高效率
+    
+核心代码：
+
+```go
+var pool *redis.Pool
+
+pool = &redis.Pool{
+    Maxidle:8,//最大空闲连接数
+    MaxActive:0,//和数据库的最大连接数,0表示没有限制
+    IdleTimeout:100,//最大空闲时间
+    Dial:func()(redis.Conn,error){
+        return redis.Dial("tcp","localhost:6379")
+    },
+}
+c := pool.Get()//从连接池中取出一个链接
+pool.Close()//关闭连接池，一旦关闭就无法从连接池中再取数据了
+```
 
 
 
