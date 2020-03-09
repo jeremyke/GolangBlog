@@ -35,12 +35,7 @@ func main() {
 		fmt.Scanf("%d\n", &userId)
 		fmt.Println("请输入你的密码")
 		fmt.Scanf("%s\n", &userPwd)
-		err := login(userId, userPwd)
-		if err != nil {
-			fmt.Println("登录失败...")
-		} else {
-			fmt.Println("登录成功")
-		}
+		login(userId, userPwd)
 		/*fmt.Println("--------欢迎登录多人聊天室-----------")
 		fmt.Println("          1 登录聊天室")
 		fmt.Println("          2 注册用户")
