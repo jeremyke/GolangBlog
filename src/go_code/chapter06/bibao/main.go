@@ -13,6 +13,7 @@ func AddUpper() func(int) int {
 
 func main() {
 	f := AddUpper()
+	fmt.Printf("f的类型是%T,f的值是%v\n", f, f)
 	fmt.Println(f(1)) //11
 	fmt.Println(f(2)) //13
 	fmt.Println(f(3)) //16

@@ -16,7 +16,7 @@ type Usb2 interface {
 	//声明了两个没有实现的方法
 	Start()
 	Stop()
-	Test()
+	//Test()
 }
 
 type Phone struct {

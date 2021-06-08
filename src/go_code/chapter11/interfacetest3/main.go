@@ -11,6 +11,10 @@ type Usb interface {
 	Stop()
 }
 
+type Usb2 interface {
+	Call()
+}
+
 type Phone struct {
 	Name string
 }

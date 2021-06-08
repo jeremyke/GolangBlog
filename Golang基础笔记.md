@@ -106,6 +106,7 @@ func main()  {
 #### 2.4 Golang中“+”的使用
 - 左右两边为数值型时，则做加法运算
 - 左右2边字符串，则做字符串拼接
+- 不同类型的变量 使用+号会报错
 
 ```go
 package main
@@ -184,8 +185,8 @@ byte 等价于uint8,适合存储字符。
 #### 3.3 字符类型（char）
 
 ###### 3.3.1 基本介绍
-> Golang中没有专门的字符类型，如果要存储单个字符（字母），一般使用byte来保存.
->字符串就是一串固定长度的字符连接起来的字符序列。GO的字符串是由单个字节连接起来的。也就是说:对于传统的其他编程语言的字符串是由字符组成的，而go的字符串不同，它由字节组成的。
+> Golang中没有专门的字符类型，如果要存储单个字符（字母），一般使用byte来保存。
+>字符串就是一串固定长度的字符连接起来的字符序列。Go的字符串是由单个字节连接起来的。也就是说:对于传统的其他编程语言的字符串是由字符组成的，而go的字符串不同，它由字节组成的。
 
 ```go
 func main(){
@@ -205,13 +206,13 @@ func main(){
 
 **字符使用细节：**
 
-1)字符常量用单引号（‘’）括起来的单个字符，例如：var c1 byte = 'a'
+1)字符常量用单引号'括起来的单个字符，例如：var c1 byte = 'a'
 
-2)Go中允许使用转义字符'\'来将后面的字符转变为特字符型常量。例如：var c1 byte ='\n' ，'\n'表示换行符,   码值是10
+2)Go中允许使用转义字符'\\'来将后面的字符转变为特字符型常量。例如：var c1 byte ='\n' ，'\n'表示换行符,   码值是10
 
 3)Golang字符使用utf-8编码（英文占1个字节，汉字占3个字节）
 
-4)在Golang中，字符的本质是一个整数，直接输出时，对应该字符对应的UTF-8编码的码值。
+4)在Golang中，字符的本质是一个整数，直接输出时，对应该字符对应的UTF-8编码的码值，可以直接和数值型变量计算。
 
 5)可以直接给某个变量赋值一个数字，然后按照格式化输出时%c,会输出该数字对应的Unicode字符。
 
@@ -263,6 +264,7 @@ fmt.Println(str)
 |浮点型|0|
 |字符串型|""|
 |布尔型|false|
+|字符|0|
 
 >fmt.Printf("a=%v",a)//%v指按变量的值输出
 
@@ -344,12 +346,12 @@ func main(){
 
 1) 基本数据类型，变量存的就是值，也叫值类型。
 2) 获取变量的地址用&，比如：var n int,获取n的地址：&n
-3) 指针类型，指针变量存的是一个地址，这个地址指向的空间存的才是值，比如：var ptr *int = &n
-4) 获取指针类型所指向的值。使用：*,比如：var ptr *int 使用*ptr获取ptr指向的值
+3) 指针类型，指针变量存的是一个地址，这个地址指向的空间存的才是值，比如：var ptr \*int = &n
+4) 获取指针类型所指向的值。使用：*,比如：var ptr \*int 使用*ptr获取ptr指向的值
 
 ###### 3.9.2 指针细节说明
 
-1) 值类型,都有对应的指针类型，形式为*数据类型。比如int数据类型，其指针类型位*int
+1) 值类型,都有对应的指针类型，形式为*数据类型。比如int数据类型，其指针类型为\*int
 2) 值类型包括：基本数据类型（int,float,bool,string）和数组，结构体
 
 #### 3.10 值类型和引用类型
@@ -357,7 +359,7 @@ func main(){
 ###### 3.10.1 说明
 值类型： 基本数据类型（int系列，float系列，bool,string），数组，结构体
 
-引用类型：指针，slice切片，map,channel，interface
+引用类型：指针，slice切片，map，channel，interface
 
 ###### 3.10.2 使用特点
 
@@ -438,7 +440,7 @@ fmt.Println(-10%3) //-1
 
 1)运算结果为bool类型，true/false
 2)关系运算符组成的表达式我们称为关系表达式
-3)比较运算符“==”不要误写位“=”
+3)比较运算符“==”不要误写为“=”
 
 #### 4.3 逻辑运算符
 >&&(逻辑与)，||(逻辑或)，！(逻辑非)
@@ -471,7 +473,7 @@ fmt.Println(-10%3) //-1
 
 **说明**
 
-1)上表优先级从上到下，依次降低。
+1)上表优先级：从上到下，依次降低。
 
 2)只有单目运算符，赋值运算符从右到左运算，其他均为从左到右边。
 
@@ -636,13 +638,14 @@ switch {
         fmt.Println("meiyoulaaaaaa")
 }
 ```
-8) switch后面也可以定义/申明一个变量分好结束，但是这里不推荐。
+8) switch后面也可以定义/申明一个变量，分号“;”结束，但是这里不推荐。
+
 ```go
 switch age := 10;{
     case 10 :
         fmt.Println("10.....")
     case 20 :
-    	fmt.Println("20.....")
+    	  fmt.Println("20.....")
     defaulf:
         fmt.Println("meiyoulaaaaaa")
 }
@@ -895,11 +898,11 @@ import “包的路径”(从src后面的目录开始写)
 
 ###### 6.2.4 包的使用细节
 
-1) 在给一个文件打包时，该包对应一个文件夹。比如utils目录对应的包名就是utils,文件的包名，通常和文件所在的目录保存一致，一般小写字母。
+1) 在给一个文件打包时，该包对应一个文件夹。比如utils目录对应的包名就是utils,文件的包名通常和文件所在的目录名保存一致，一般小写字母。
 2) 当一个文件要使用其他包的函数或者变量时，需要引入对应的包。
 3) 在import包时，路径从$GOPATH的src下开始，不用带src,编译器自动从src下开始引入。
 4) 为了让其他包的文件可以访问到本包的函数，则该函数名的首字母需要大写,即可导出。
-5) 在访问其他包函数时，其语法为：报名.函数名。
+5) 在访问其他包函数时，其语法为：包名.函数名。
 6) 如果包名比较长，Go支持给包取别名，注意，取别名之后，在该包里面，引入的原来的包名就不能使用了。实例如下：
 
 ```go
@@ -909,7 +912,8 @@ import (
 ```
 
 7) 在同一个包里面不能有相同名称的函数或者变量。
-8) 如果要编译成可执行文件，就需要将该包声明位main,即package main.这是一个语法规范，如果你是写一个库，包名可以自定义。
+8) 如果要编译成可执行文件，就需要将该包声明为main,即package main.这是一个语法规范，如果你是写一个库，包名可以自定义。
+
 ```text
 说明：
 （1）编译的指令，在项目目录下，编译路径不需要带src,编译器会自动带
@@ -929,7 +933,7 @@ func 函数名 (形参列表) (返回值类型列表) {
     return 返回值列表//return str1,str2多值用,隔开
 }
 ```
-1) 如果返回多个值，在接收时，希望忽略某个值，则使用_符号站位忽略
+1) 如果返回多个值，在接收时，希望忽略某个值，则使用_符号占位忽略
 
 2) 如果返回只有一个值，(返回值类型列表)中可以不写小括号()
 
@@ -969,7 +973,6 @@ func test(n int) {
 
 - 题3：猴子吃桃问题 有一堆桃子，猴子第一天吃了其中的一半，并再多吃了一个！以后每天猴子都吃了其中的一半，并再多吃一个。当到第十天，
   想在吃时（还没吃），发现只有一个桃子了，问一共有多少个桃子？
-  
 ```go
 package main
 
@@ -999,6 +1002,7 @@ func getNum(n int) int{
 2) 基本数据类型和数组默认都是值传递，即进行值拷贝，在函数内修改，不会影响原来的值。
 3) 如果希望函数内的变量能修改函数外的变量，可以传入函数的地址&，函数内以指针的方式操作变量。
 4) Go函数不支持重载。
+
 ```go
 func test (n1 int) int{
     //函数体
@@ -1007,10 +1011,11 @@ func test (n1 int,n2 int) int{
     //函数体
 }
 //这是不允许的！！！！！！
+```
 
-​```s
-5) 在GOlang中，函数也是一种数据类型，可以赋值给一个变量，则该变量就是一个函数类型的变量了。通过该变量可以对函数调用。
-​```go
+5) 在Golang中，函数也是一种数据类型，可以赋值给一个变量，则该变量就是一个函数类型的变量了。通过该变量可以对函数调用。
+
+```go
 func getSum(n1 int, n2 int) int {
     return n1+n2
 }
@@ -1020,7 +1025,9 @@ func main()  {
     fmt.Printf("a的类型%T,getSum类型是%T",a,getSum)//func(int,int) int func(int,int) int
 }
 ```
+
 6) 函数既然是一种数据类型，因此在Go中，函数可以作为形参，并且调用。
+
 ```go
 func getSum(n1 int, n2 int) int {
     return n1+n2
@@ -1031,10 +1038,12 @@ func myFun(funvar func(int,int) int,num1 int,num2 int){
 ```
 7) 为了简化数据类型定义，Go支持自定义数据类型。
     基本语法：type 自定义数据类型 数据类型
+
 ```go
 type myFunType func(int,int) int
 ```
 8) 支持对函数返回值命名
+
 ```go
 func cal(n1 int, n2 int) (sum int, sub int){
     sum = n1+n2
@@ -1198,12 +1207,13 @@ func makeSuffix(suffix string) func (string) string {
         }       
     }
 }
+func main (){
+  	f := makeSuffix(".jpg")
+		fmt.Println("文件名为=".f2("winter"))//winter.jpg
+		fmt.Println("文件名为=".f2("winter.jpg"))//winter.jpg
+		fmt.Println("文件名为=".f2("winter.avi"))//winter.avi.jpg
+}
 
-f := makeSuffix(".jpg")
-
-fmt.Println("文件名为=".f2("winter"))//winter.jpg
-fmt.Println("文件名为=".f2("winter.jpg"))//winter.jpg
-fmt.Println("文件名为=".f2("winter.avi"))//winter.avi.jpg
 ```
 **总结：**
 
@@ -1238,12 +1248,17 @@ func main()  {
     res := sum(10,20)
     fmt.Println("res=",res)
 }
+//ok3 res=30
+//ok2 n2=20
+//ok1 n1=10
+//res res=30
 ```
 ###### 6.8.2 细节说明
 
 1) 当go执行到一个defer时，不会立即执行defer后的语句，而是将defer后的语句先压入到defer栈中，然后继续执行函数下一个语句。
 2) 当函数执行完毕后，再从defer栈中，先入后出的方式执行语句。
 3) 在defer将语句放入到栈中时，也会将相关的值拷贝同时入栈。
+
 ```go
 package main
 
@@ -1275,7 +1290,7 @@ defer最主要的价值是在函数执行完毕后，可以及时释放函数创
 
 ###### 6.9.1 说明
 
-1) 局部变量：函数内部申明/定义的变量，作用域仅限于函数内部。
+1) 局部变量：函数内部申明的变量，作用域仅限于函数内部。
 2) 全局变量：函数外部声明的变量，作用域在整个包中都有效，如果首字母大写，则作用域为整个程序有效。
 3) 如果变量是一个代码块，比如for/if中，那么这个变量的作用域就在该代码块中。
 
@@ -1437,7 +1452,7 @@ var 数组名 [数组大小]数据类型
 
 var a [5]int
 
-赋初值 a[0] = 1 a[1] = 3....
+a[0] = 1 a[1] = 3....//赋值
 ```
 ###### 7.1.2 数组内存图
 
@@ -1524,9 +1539,10 @@ func main()  {
 	var intArr [5]int = [...]int{1,23,45,21,46}
 
 	aslice := intArr[1:3]
-	fmt.Println(aslice)
-	fmt.Println("切片的长度是：",len(aslice))
-	fmt.Println("切片的容量是：",cap(aslice))
+  //切片是某个数组（相关数组，通常是匿名的）由起始和终止索引标识的一些项的子集。需要注意的是，终止索引标识的项不包括在切片内。
+	fmt.Println(aslice)//[23 45]
+	fmt.Println("切片的长度是：",len(aslice))//2
+	fmt.Println("切片的容量是：",cap(aslice))//4
 }
 ```
 
@@ -1581,7 +1597,7 @@ func main() {
 **方式一和方式二的区别：**
 
 1) 方式1是直接引用数组，这个数组是事先存在的，程序员是可见的。
-2) 方式2是通过make创建切片，make也会创建一个数组，是由切片在底层进行维护，程序员不可见。
+2) 方式2是通过make创建切片。其实是make先创建一个数组，是由切片在底层进行维护，程序员不可见。
 
 ###### 7.3.5 切片的遍历
  for循环和for-range循环
@@ -1605,16 +1621,17 @@ var slice1 = arr[:]
 slice1 = append(slice1,10,20,30)//追加具体元素
 slice1 = append(slice1,slice1...)//追加切片，注意三个点
 ```
-append操作的本质是对数组扩容，go底层会创建一个新的数组newArr,然后slice原来包含的元素拷贝到新的数组newArr，slice重新引用新的
-数组newArr,newArr是在底层维护，不可见的。
+append操作的本质是对数组扩容，go底层会创建一个新的数组newArr,然后slice原来包含的元素拷贝到新的数组newArr，slice重新引用新的数组newArr,newArr是在底层维护，不可见的。
 7) 切片的拷贝copy
+
 ```go
 copy(param1,param2)//param1和param2都是切片类型
 ```
 
 ###### 7.3.6 string和slice
 
-1) string其实也是一个切片，底层是一个byte数组，因此string也可以进行切片处理
+1) string底层是一个byte数组，因此string也可以进行切片处理
+
 ```go
 package main
 
@@ -1630,6 +1647,7 @@ func main()  {
 ```
 2) string是不可变的，也就是说不通过str[0]='z'来修改字符串
 3) 如果一定要修改字符串，可以先将string转为[]byte或者[]rune,然后再转为string
+
 ```go
 str := "hello@abc"
 	slice := str[6:]
@@ -1770,7 +1788,7 @@ var map变量名 map[key数据类型]value数据类型
 
 - key是什么数据类型：
 
-Golang的map的key可以有很多种类型，比如bool,数字，string,指针，channel,还可以是包含前几个类型的接口，结构体，数组。
+Golang的map的key可以有很多种类型，比如bool，数字，string，指针，channel还可以是包含前几个类型的接口，结构体，数组。
 通常为int和string
 
 **注意：**
@@ -1779,7 +1797,7 @@ slice,map和function不能作为key的类型，因为这几个没法用==来判�
 
 - value数据类型：
 
-value的数据类型和key基本一样，但是通常为：数字，string，map,struct
+value的数据类型和key基本一样，但是通常为：数字，string，map和struct
 
 - map声明举例：
 
@@ -1873,7 +1891,7 @@ len(studentMap)
 
 ###### 9.6.2 案例
 ```go
-monsters := make([]map[string]string,1)//make切片,2指长度
+monsters := make([]map[string]string,2)//make切片,2指长度
 if monsters[0]==nil {
     monsters[0] = make(map[string]string,2)
     monsters[0]["name"] = "孙悟空"
@@ -1930,16 +1948,17 @@ func main()  {
 
 #### 10.1 结构体
 
+结构体本身属于值类型。
+
 ###### 10.1.1 Golang面向对象编程说明
 
 1) Golang并不是纯碎的面向对象语言，但是Golang支持面向对象编程特性。
 2) Golang没有class类，Golang的struct和其他编程语言的class有同等地位，可以理解为Golang是基于struct来实现OOP特性的。
 3) Golang面向对象编程非常简洁，去掉了传统OOP语言的方法重载，构造函数和析构函数，隐藏的this指针等等。
-4) Golang仍然有面向对象编程的继承，封装和多态的特性，只是实现的方式和其他OOP语言不一样，比如继承：Golang没有extends关键字，继承是通过
-    匿名字段来实现的。
-5) Golang面向对象很优雅，OOP本身就是语言类型系统的一部分，通过接口（interface）关联，耦合性低，也非常灵活。也就是说，Golang中面向
-    接口编程是非常重要的特性。
+4) Golang仍然有面向对象编程的继承，封装和多态的特性，只是实现的方式和其他OOP语言不一样，比如继承：Golang没有extends关键字，继承是通过匿名字段来实现的。
+5) Golang面向对象很优雅，OOP本身就是语言类型系统的一部分，通过接口（interface）关联，耦合性低，也非常灵活。也就是说，Golang中面向接口编程是非常重要的特性。
     
+
 ###### 10.1.2 结构体与结构体变量（实例/对象）关系
 
 1) 将一类事物的特征提取出来（比如猫类），形成一个新的数据类型，就是一个结构体。
@@ -1975,7 +1994,9 @@ func main()  {
 2) 结构体变量是具体的，实实在在的代表某一个客观变量
 
 ###### 10.1.5 结构体变量在内存中的存在形式
->p184图后面补上
+
+![image](./pic/struct.png)
+![image](./pic/struct2.png)
 
 
 ###### 10.1.6 结构体声明
@@ -1998,6 +2019,7 @@ type 结构体名称 struct {
 3) 在创建一个结构体变量后，如果没有给字段赋值，值类型的数据类型都对应一个0值，引用的数据类型都为nil,意为还没分配空间。
     引用类型的字段必须先make再赋值!!!
     
+
 ```go
 package main
 
@@ -2024,7 +2046,8 @@ func main()  {
 	fmt.Println(klp)
 }
 ```
-4) 不同结构体变量的字段是独立的，互不影响，一个结构体变量字段的更改，不影响另一个。
+4) 不同结构体变量的字段是独立的，互不影响，一个结构体变量字段的更改，不影响另一个，结构体是值类型。
+
 ````go
 type Monster struct {
     Name string
@@ -2104,8 +2127,8 @@ fmt.Println(*monster3)
 **说明：**
 
 1) 第三种和第四种返回的是结构体指针
-2) 结构体指针访问字段的标准方式是：(*结构体指针)字段名
-3) go做了简化，也支持”结构体指针.字段名“,比如monster3.Age = 17，更加符合程序员的使用习惯。其实是Go底层对monster3.Age做了转化成(*monster3).Age = 17
+2) 结构体指针访问字段的标准方式是：(\*结构体指针)字段名
+3) go做了简化，也支持''结构体指针.字段名'',比如monster3.Age = 17，更加符合程序员的使用习惯。其实是Go底层对monster3.Age做了转化成(*monster3).Age = 17
 
 ###### 10.1.9 结构体的细节说明
 
@@ -2233,8 +2256,7 @@ func main()  {
 ```
 ###### 10.2.4 方法的调用和传参机制
 
-**说明：**方法的调用和传参机制与函数基本一样，不一样的地方是变量调用方法时，该变量也会当做实参也传递给方法（如果变量是值类型，就是值拷贝，
-        如果是引用类型，就是地址拷贝）。
+**说明：**方法的调用和传参机制与函数基本一样，不一样的地方是：变量调用方法时，该变量也会当做实参，也会传递给方法（如果变量是值类型，就是值拷贝，如果是引用类型，就是地址拷贝）。
 
 ###### 10.2.5 方法的声明
 
@@ -2256,7 +2278,7 @@ func (recevier type) 方法名称(参数列表) (返回值列表) {
 1) 结构体类型是值类型，在方法调用中遵守值类型的传递机制，是值拷贝。
 2) 如果程序员希望在方法中，修改结构体变量的值，可以通过结构体指针的方式来处理（通常的做法）
 3) Golang的方法作用在指定的数据类型上（即：和指定数据类型绑定），因此自定义的类型，都可以有方法，不仅仅是struct，int32,float64都有自己的方法
-4) 方法的访问范围控制的规则，和函数一样，方法名手写字母小写，只能在本包中使用，大写，则可以在本包和其他包中使用
+4) 方法的访问范围控制的规则，和函数一样（方法名首写字母小写，只能在本包中使用，大写，则可以在本包和其他包中使用）
 5) 如果一个类型实现了String()这个方法，那么fmt.Println默认会调用这个实例的String()进行输出
 
 #### 10.3 面向对象编程的应用实例
@@ -2282,8 +2304,7 @@ type Student struct{
 	Name string
 }
 ```
-在这里的Student的首先字母大写，如果我们想在其他包创建Student实例，就需要先引入model包，再创建Student实例就可以了。但是，
-如果小首写字母小写，就不行了。这时需要使用工厂模式来解决这个问题。
+在这里的Student的首先字母大写，如果我们想在其他包创建Student实例，就需要先引入model包，再创建Student实例就可以了。但是，如果小首写字母小写，就不行了。这时需要使用工厂模式来解决这个问题。
 
 ###### 10.4.1 工厂模式解决上述问题
 
@@ -2382,6 +2403,7 @@ Golang开发并没有特别强调封装，其本身对面向对象做了简化�
 1) 将结构体，字段的首写字母小写
 2) 给结构体所在的包提供一个工厂模式的函数，类似其他语言的构造函数。
 3) 提供一个首写字母大写的Set方法，用于对属性判断并赋值
+
 ```go
 func (变量名 结构体类型名)SetXxx(参数列表) (返回值列表) {
     //验证逻辑
@@ -2428,6 +2450,7 @@ type Book struct{
 **继承的深入讨论**
 1) 结构体可以使用嵌套匿名函数结构体的所有字段和方法，即：在同一个包里面，首字母大写或者小写的属性和字段都可以使用
 2) 匿名结构体字段访问可以简化
+
 ```go
 func main(){
     var b bstruct
@@ -2447,10 +2470,45 @@ func main(){
 ```
 说明：当我们直接通过b访问字段或者方法时，其执行流程：比如b.name,编译器首先会看b的类型有没有Name，如果有，则直接调用B类型Name
      字段，如果没有就去看B中嵌入的匿名结构体A有没有声明Name，如果有就调用，没有就继续查找，如果都找不到就报错。
+
 3) 当结构体和匿名结构体有相同的属性或者方法时，编译器采用就近访问原则访问，如果希望访问匿名结构体的字段和方法，可以通过匿名结构体
 名来区分。
+
+```go
+package main
+
+import "fmt"
+
+type A struct {
+	Name string
+	Age int
+}
+
+func (a A) say()  {
+	fmt.Println("我是属于A的")
+}
+
+type B struct {
+	Name string
+	A
+}
+
+func (b B) say() {
+	fmt.Println("我是属于B的")
+}
+
+func main() {
+	var b B
+	b.say()//我是属于B的
+	b.A.say()//我是属于A的
+}
+```
+
+
+
 4) 结构体嵌入两个（或多个）匿名结构体，如两个匿名结构体有相同的字段和方法（同时结构体本身没有同名的属性和方法），在访问时，就必须明确
 指明匿名结构体名字，否则报错。
+
 ```go
 type A struct {
     Name string
@@ -2463,9 +2521,16 @@ type B struct {
 type C struct{
     A
     B
-}  
+}
+func main()  {
+	var c_struct C
+	c_struct.A.Name = "sss"
+}
 ```
+
+
 5) 如果一个结构体嵌套了一个有名结构体，这种模式就是组合，如果是组合关系，那么在访问组合的结构体的属性和方法时，必须带上结构体名字。
+
 ```go
 type A struct {
     Name string
@@ -2534,6 +2599,7 @@ func main()  {
 }
 ```
 6) 在结构体中可以嵌入基本数据类型。
+
 ```go
 type Person struct {
     Name string
@@ -2596,7 +2662,7 @@ func (m 自定义类型) method2(参数列表)返回值列表{
 - 总结：
 ```text
 （1）接口里面的所有方法都没有方法体，即接口的方法是没有实现的，接口体现了程序设计的多态和高内聚低耦合的思想。
-（2）Golang的接口不需要显示实现。只要一个变量，含有接口的所有方法，那么这个变量就实现了这个接口。因此接口中没有implement关键字。
+（2）Golang的接口不需要显示实现。只要一个实例，含有接口的所有方法，那么这个变量就实现了这个接口。因此接口中没有implement关键字。
 ```
 
 **注意事项和细节说明**
@@ -2705,7 +2771,7 @@ type CInterface interface{
 type AInterface interface{
     BInterface
     CInterface
-	test3()
+	  test3()
 }
 
 type Stu struct{}
@@ -2769,6 +2835,7 @@ func (this *Monkey)climb()  {
 	fmt.Println(this.Name,"天生会爬树...")
 }
 
+
 type Bird interface {
 	Fly()
 }
@@ -2776,10 +2843,11 @@ type Bird interface {
 type SonMonkey struct {
 	Monkey
 }
-
 func (this *SonMonkey) Fly()  {
 	fmt.Println(this.Name, " 通过实现，会飞翔...")
-}
+}//实现了Bird这个空接口
+
+
 
 
 func main()  {
@@ -2845,6 +2913,10 @@ type Usb interface {
 	Stop()
 }
 
+type Usb2 interface {
+	Call()
+}
+
 type Phone struct {
 	Name string
 }
@@ -2856,12 +2928,15 @@ func (p Phone) Start() {
 func (p Phone) Stop() {
 	fmt.Println("手机停止工作。。。")
 }
+func (p Phone) Call() {
+	fmt.Println("手机打电话。。。")
+}
 
 type Camera struct {
 	Name string
 }
 
-//让Camera 实现   Usb接口的方法
+//让Camera 实现Usb接口的方法
 func (c Camera) Start() {
 	fmt.Println("相机开始工作~~~。。。")
 }
@@ -2869,14 +2944,31 @@ func (c Camera) Stop() {
 	fmt.Println("相机停止工作。。。")
 }
 
+type Computer struct {
+}
+
+func (c Computer) working(u Usb) {
+	u.Start()
+	//如果u是Phone的实例，还需要调用call方法
+	if phone, ok := u.(Phone); ok == true {
+		phone.Call()
+	}
+	u.Stop()
+}
+
 func main() {
-	var usrArr [3]Usb//多态数组
+	var usrArr [3]Usb //多态数组
 	usrArr[0] = Phone{"vivo"}
 	usrArr[1] = Phone{"mi"}
 	usrArr[2] = Camera{"尼康"}
 	fmt.Println(usrArr)
+	var c Computer
+	for _, v := range usrArr {
+		c.working(v)
+	}
 
 }
+
 ```
 **类型断言**
 
@@ -2897,7 +2989,7 @@ func main(){
 	var point Point = Point{1,2}
 	a = point
 	var b Point
-	//b = a//这样直接赋值是不对的，因为a是空接口类型，而b是point类型，这时需要类型断言
+	//b = a这样直接赋值是不对的，因为a是空接口类型，而b是point类型，这时需要类型断言
 	b = a.(Point)//类型断言
 }
 ```
@@ -2933,6 +3025,10 @@ type Usb interface {
 	//声明了两个没有实现的方法
 	Start()
 	Stop()
+}
+
+type Usb2 interface {
+	Call()
 }
 
 type Phone struct {
