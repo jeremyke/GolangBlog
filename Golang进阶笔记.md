@@ -52,6 +52,7 @@ func main()  {
 	defer file.Close()
 
 	//创建*Reader,是带缓冲的 默认大小4K
+  //NewReader返回 
 	reader := bufio.NewReader(file)
 	for {
 		str,err := reader.ReadString('\n')//读到一个换行就结束
@@ -82,9 +83,9 @@ func main()  {
 
 func OpenFile(name string,flag int,perm FileMode)(file *File,err error)
 
-**说明：** os.OpenFile是一个更一般性的文件打开函数，他会使用指定的选项（如：O_RDONLY等），指定的模式（如0666等）打开指定名称的文件。
-        操作成功，返回文件对象可用于I/O.如果出错，错误底层类型是*PathError
+**说明：** os.OpenFile是一个更一般性的文件打开函数，他会使用指定的选项（如：O_RDONLY等），指定的模式（如0666等）打开指定名称的文件。操作成功，返回文件对象可用于I/O，如果出错，错误底层类型是*PathError
         
+
 ```go
 func main()  {
 	fileName := "/home/jeremyke/Desktop/b.txt"
@@ -184,8 +185,7 @@ func main()  {
 
 json是一种轻量级的数据交换格式，易于人阅读和编写，同时也易于机器解析和生成。
 
-json有效的提升网络传输效率，通常程序在网络传输时会先将数据（结构体，map等）序列化成json字符串，到接收方得到json字符串时，再
-反序列化恢复成原来的数据类型（结构体，map等），这种方式已然成为各个语言的标准。
+json有效的提升网络传输效率，通常程序在网络传输时会先将数据（结构体，map等）序列化成json字符串，到接收方得到json字符串时，再反序列化恢复成原来的数据类型（结构体，map等），这种方式已然成为各个语言的标准。
 
 Golang--（序列化）-->json字符串--（网络传输）-->程序--（反序列化）-->其他语言
 
@@ -204,7 +204,7 @@ type Monster struct {
 
 func testStruct()  {
 	monster := Monster{
-		Name:     "蒋冬莲",
+		Name:     "蒋",
 		Age:      24,
 		Birthday: "0703",
 		Sal:      8000.0,
@@ -247,6 +247,8 @@ func testSlice()  {
 	m1["name"] = "蒋冬莲"
 	m1["sex"] = "女"
 	m1["address"] = "珠海"
+  //stringSlice[0] = m1 stringSlice没有make,只是申明了，但没有分配内存
+	//但是为什么append能作用在stringSlice呢？因为append会在每次追加的时候重新分配内存
 	stringSlice = append(stringSlice,m1)
 	var m2 map[string]interface{}
 	m2 = make(map[string]interface{})
@@ -412,7 +414,7 @@ func TestGetSub(t *testing.T)  {
 6) 当出现错误时，可以使用t.Fatalf来格式化输出错误信息，并退出程序
 7) t.Logf方法输出相应的日志
 8) 测试用例函数不需要main函数
-9) Pass表示测试咏柳运行成功，fail表示失败，都成功才为成功。
+9) Pass表示测试永远运行成功，fail表示失败，都成功才为成功。
 10) 测试单个文件，一定要带上被测试的原文件：go test -v ./cal_test.go
 11) 测试单个方法：go test -v -test.run TestAddUpper
 
@@ -435,6 +437,7 @@ func TestGetSub(t *testing.T)  {
     （3）调度由用户控制（协程的开启和关闭是程序员控制的）
     （4）协程是轻量级的线程
     
+
 #### 16.2 goroutine快速入门
 
 在主线程中开启一个goroutine,该协程每隔1秒输出“hello world”,在主线程中也每隔一秒输出“hello golang”,输出10次后，退出程序。
@@ -514,7 +517,7 @@ M:操作系统主线程（物理线程）；P:协程执行需要的上下文；G
 ###### 16.3.2 MPG运行的状态1：
 
 1) 当前程序有3个M,如果3个M都在一个CPU上执行，就是并发，如果分别在不同CPU上执行就是并行。
-2) M1，M2,M3正在执行一个G,M1的协程队列有3个，M2的协程队列有3个，M3的协程队列有2个
+2) M1，M2，M3正在执行一个G,M1的协程队列有3个，M2的协程队列有3个，M3的协程队列有2个
 3) Go的协程是轻量级的线程，是逻辑态的，而C/java的多线程，往往是内核态的，比较重量级，几千个就可能耗光cpu
 
 ###### 16.3.3 MPG运行的状态2：
@@ -1255,7 +1258,6 @@ pool = &redis.Pool{
 c := pool.Get()//从连接池中取出一个链接
 pool.Close()//关闭连接池，一旦关闭就无法从连接池中再取数据了
 ```
-
 
 
 
