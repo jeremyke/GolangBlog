@@ -7,6 +7,7 @@ import (
 
 func connect() redis.Conn {
 	//连接redis
+
 	c, err := redis.Dial("tcp", "localhost:6379")
 	if err != nil {
 		fmt.Println("redis connect err:", err)

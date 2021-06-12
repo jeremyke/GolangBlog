@@ -39,7 +39,7 @@ func main() {
 	intChan := make(chan int, 10000)
 	primeChan := make(chan int, 10000)
 	exitChan := make(chan bool, 8)
-	start := time.Now().Unix()
+	//	start := time.Now().Unix()
 	//开启一个协程写入数据
 	go readNum(intChan)
 	//开启4个协程取出数据，并判断是否为素数
