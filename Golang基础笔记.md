@@ -2130,6 +2130,55 @@ fmt.Println(*monster3)
 2) 结构体指针访问字段的标准方式是：(\*结构体指针)字段名
 3) go做了简化，也支持''结构体指针.字段名'',比如monster3.Age = 17，更加符合程序员的使用习惯。其实是Go底层对monster3.Age做了转化成(*monster3).Age = 17
 
+
+
+**创建结构体时指定字段的值：**
+
+方式一：
+
+```go
+type Student struct {
+  Name string
+  Age int
+}
+func main(){
+  stu := Student{"tom",18}
+}
+```
+
+方式二：
+
+```go
+type Student struct {
+  Name string
+  Age int
+}
+func main(){
+  stu := Student{
+    Name:"tom",
+    Age:18,
+  }
+}
+```
+
+方式三：
+
+```go
+type Student struct {
+  Name string
+  Age int
+}
+func main(){
+  var stu *Student = &Student{"tom",18}//返回结构体的指针1
+  var stu2 *Student = &Student{
+    Name:"tom",
+    Age:18,
+  }//返回结构体的指针2
+}
+```
+
+
+
 ###### 10.1.9 结构体的细节说明
 
 1) 结构体的所有字段在内存中是连续分布的。结构体的字段如果是指针类型，其本身地址是连续的，但是指针指向的地址不一定连续，没有直接关系。
@@ -2546,6 +2595,7 @@ Golang仍然有面向对象编程的继承，封装，多态的特性，只是�
 ###### 10.5.1 封装（encapsulation）
 封装就是把抽象出来的字段和对字段的操作（方法）封装在一起，数据被保护在内部，程序的其他包只有通过被授权的方法，才能对字段进行操作。
 Golang开发并没有特别强调封装，其本身对面向对象做了简化。
+
 **封装的优点：**
 
 1) 隐藏实现细节
@@ -2558,9 +2608,9 @@ Golang开发并没有特别强调封装，其本身对面向对象做了简化�
 
 **封装实现步骤：**
 
-1) 将结构体，字段的首写字母小写
-2) 给结构体所在的包提供一个工厂模式的函数，类似其他语言的构造函数。
-3) 提供一个首写字母大写的Set方法，用于对属性判断并赋值
+1) 将结构体，字段的首写字母小写，类似private
+2) 给结构体所在的包提供一个工厂模式的函数，首写字母大写，类似其他语言的构造函数。
+3) 提供一个首写字母大写的Set方法（类似其他语言的public），用于对属性判断并赋值
 
 ```go
 func (变量名 结构体类型名)SetXxx(参数列表) (返回值列表) {
@@ -2576,12 +2626,52 @@ func (变量名 结构体类型名)GetXxx(参数列表) (返回值列表) {
 }
 ```
 
+**封装的案例：**
+
+person结构体，不能随便访问其年龄，工资，等隐私，并对输入的年龄合理验证。
+
+```go
+package model
+type person struct {
+  Name string
+  age int
+  salary float64
+}
+func NewPerson(name string) *person {
+  return &person{
+    Name:name,
+  }
+}
+func (p *person) SetAge(age int){
+  if age<0 || age>150 {
+    fmt.Prinln("输入年龄有误")
+  }else{
+    p.age = age
+  }
+}
+func (p *person) GetAge() int{
+	return p.age
+}
+func (p *person) SetSalary(sal int){
+  if age<0 || age>30000 {
+    fmt.Prinln("输入薪水有误")
+  }else{
+    p.salary = sal
+  }
+}
+
+func (p *person) GetSalary() float64{
+	return p.salary
+}
+```
+
+
+
 ###### 10.5.2 继承
 
 **继承的基本介绍：**
 
-继承可以解决代码复用问题。当多个结构体有相同的属性和方法时，可以从这些结构体中抽象出结构体（比如刚才的Student），在该结构体中定义这些相同的
-属性和方法。
+继承可以解决代码复用问题。当多个结构体有相同的属性和方法时，可以从这些结构体中抽象出结构体（比如刚才的Student），在该结构体中定义这些相同的属性和方法。
 
 其他结构体不需要重新定义这些属性和方法，只需要嵌套一个Student匿名结构体即可。
 
@@ -2605,11 +2695,73 @@ type Book struct{
 1) 代码复用性提高了
 2) 代码扩展性和维护性提高了
 
-**继承的深入讨论**
-1) 结构体可以使用嵌套匿名函数结构体的所有字段和方法，即：在同一个包里面，首字母大写或者小写的属性和字段都可以使用
-2) 匿名结构体字段访问可以简化
+**入门案例：**
 
 ```go
+package mian
+import "fmt"
+type student struct {
+  Name string
+  Age int
+  Score float64
+}
+func (stu *student) ShowInfo(){
+  fmt.Printf("学生名为：%v,年龄为：%v,成绩为：%v\n",stu.Name,stu.Age.stu.Score)
+}
+func (stu *student) SetScore(score float64){
+  stu.Score = score
+}
+type pupil struct {
+  student//嵌入student的匿名结构体
+}
+func (pu *pupil) testing(){
+  fmt.Println("小学生在考试")
+}
+tye Graduate struct {
+  student//嵌入student的匿名结构体
+}
+func (gra *Graduate) testing(){
+  fmt.Println("大学生在考试")
+}
+```
+
+
+
+**继承的深入讨论**
+1. 结构体可以使用嵌套匿名结构体的所有字段和方法，即：在同一个包里面，首字母大写或者小写的属性和字段都可以使用。
+
+   ```go
+   package mian
+   import "fmt"
+   type A struct {
+     Name string
+     age int
+   }
+   func (a *A) SayOk(){
+     fmt.Printf("%v sayok",a.Name)
+   }
+   func (a *A) sayHello(){
+     fmt.Printf("%v sayhello",a.Name)
+   }
+   type B struct {
+     A
+   }
+   func main() {
+     var b B
+     b.A.Name = "tom"
+     b.A.age = 11
+     fmt.Println("%v的年龄为%v",b.A.Name,b.A.age)//小写的属性也能访问
+   }
+   
+   ```
+
+   
+
+2. 匿名结构体字段访问可以简化
+
+```go
+
+
 func main(){
     var b bstruct
     b.A.name = "tom"
@@ -2626,11 +2778,9 @@ func main(){
 
 }
 ```
-说明：当我们直接通过b访问字段或者方法时，其执行流程：比如b.name,编译器首先会看b的类型有没有Name，如果有，则直接调用B类型Name
-     字段，如果没有就去看B中嵌入的匿名结构体A有没有声明Name，如果有就调用，没有就继续查找，如果都找不到就报错。
+说明：当我们直接通过b访问字段或者方法时，其执行流程：比如b.name,编译器首先会看b的类型有没有Name，如果有，则直接调用B类型Name字段，如果没有就去看B中嵌入的匿名结构体A有没有声明Name，如果有就调用，没有就继续查找，如果都找不到就报错。
 
-3) 当结构体和匿名结构体有相同的属性或者方法时，编译器采用就近访问原则访问，如果希望访问匿名结构体的字段和方法，可以通过匿名结构体
-名来区分。
+3) 当结构体和匿名结构体有相同的属性或者方法时，编译器采用就近访问原则访问，如果希望访问匿名结构体的字段和方法，可以通过匿名结构体名来区分。
 
 ```go
 package main
@@ -2664,8 +2814,7 @@ func main() {
 
 
 
-4) 结构体嵌入两个（或多个）匿名结构体，如两个匿名结构体有相同的字段和方法（同时结构体本身没有同名的属性和方法），在访问时，就必须明确
-指明匿名结构体名字，否则报错。
+4) 结构体嵌入两个（或多个）匿名结构体，如两个匿名结构体有相同的字段和方法（同时结构体本身没有同名的属性和方法），在访问时，就必须明确指明匿名结构体名字，否则报错。
 
 ```go
 type A struct {
@@ -2768,7 +2917,7 @@ type Person struct {
 
 func main(){
     var p1 Person
-    p1.int = 1
+    p1.int = 1//可以直接 变量名.基本数据类型就可以对它赋值了
     p1.n = 40
 }
 ```
@@ -2778,19 +2927,33 @@ func main(){
 如果一个struct嵌套了多个匿名结构体，那么该结构体可以直接访问嵌套的匿名结构体的属性和方法，从而实现多重继承。但是尽量不要使用多重继承。
 
 ```go
+package main
+
+import "fmt"
+
 type Goods struct {
 	Name string
 	Price float64
 }
 
-type Brand struct {
-	Name string
-	Address string
-}
-//继承了2个stuct
-type Tv struct {
+type Book struct {
+	Authod string
 	Goods
-	Brand
+}
+
+//继承了2个stuct
+type MathBook struct {
+	Book
+	CaculateNum int
+}
+
+func main() {
+	var mathBook MathBook
+	mathBook.CaculateNum = 11
+	mathBook.Authod = "祖冲之"
+	mathBook.Name = "九章算术"
+	mathBook.Price = 50.00
+	fmt.Println(mathBook)
 }
 ```
 
