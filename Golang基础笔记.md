@@ -2924,7 +2924,7 @@ func main(){
 
 **多重继承**
 
-如果一个struct嵌套了多个匿名结构体，那么该结构体可以直接访问嵌套的匿名结构体的属性和方法，从而实现多重继承。但是尽量不要使用多重继承。
+如果一个struct嵌套了多层匿名结构体，那么该结构体可以直接访问嵌套的匿名结构体的属性和方法，从而实现多重继承。结构体也可以同时继承多个结构体，但是尽量不要使用多重继承。
 
 ```go
 package main
@@ -2935,13 +2935,13 @@ type Goods struct {
 	Name string
 	Price float64
 }
-
+//Book继承Goods结构体
 type Book struct {
 	Authod string
 	Goods
 }
 
-//继承了2个stuct
+//MathBook继承book结构体
 type MathBook struct {
 	Book
 	CaculateNum int
@@ -2951,7 +2951,7 @@ func main() {
 	var mathBook MathBook
 	mathBook.CaculateNum = 11
 	mathBook.Authod = "祖冲之"
-	mathBook.Name = "九章算术"
+	mathBook.Name = "《九章算术》"
 	mathBook.Price = 50.00
 	fmt.Println(mathBook)
 }
@@ -2988,8 +2988,7 @@ func (m 自定义类型) method2(参数列表)返回值列表{
 
 **注意事项和细节说明**
 
- - （1）接口路本身不能创建实例，但是可以指向一个实现了该接口的自定义类型的变量（实例）。也可以这样描述：一个自定义类型，只有实现了某个
- 接口，才能将该自定义类型的实例赋值给该接口类型
+ - （1）接口本身不能创建实例，但是可以指向一个实现了该接口的自定义类型的变量（实例）。也可以这样描述：一个自定义类型，只有实现了某个接口，才能将该自定义类型的实例赋值给该接口类型。
  ```go
 package main
 
@@ -3138,7 +3137,7 @@ fmt.Println(t)
 **接口的实践**
 > 参考chapter11/sliceorder
 
-**接口实现和继承的比较**
+**接口实现和结构体的继承的比较**
 
 - 代码案例
 ```go
@@ -3173,8 +3172,8 @@ func (this *SonMonkey) Fly()  {
 
 func main()  {
 	xiaoMonkey := SonMonkey{Monkey{Name:"孙悟空"}}
-	xiaoMonkey.climb()
-	xiaoMonkey.Fly()
+	xiaoMonkey.climb()//sonMonkey继承了Monkey结构体
+	xiaoMonkey.Fly()//sonMonkey 实现了Bird接口
 }
 ```
 - 小结
@@ -3197,7 +3196,7 @@ func main()  {
 
 **基本介绍：**
 
-实例具有多种形态。在Golang中多态特征是通过接口实现的。可以按照统一的接口来调用不同的实现，这时接口变量就呈现多种形态。
+实例具有多种形态。在Golang中多态特征是通过接口实现的。可以按照统一的接口来调用不同的实例，这时接口变量就呈现多种形态，调用同一个方法也会因为接口变量不同，结果也不同。
 
 **接口体现多态特征：**
 
@@ -3217,8 +3216,7 @@ func (c Computer) Working(usb Usb) {
 
 2) 多态数组
 
-在Usb数组中，存放Phone结构体和Camera结构体变量，示例代码如下。Phone还有一个特有的方法call(),请遍历usb数组，如果是Phone变量，除了
-调用usb接口声明的方法外，还需要调用Phone特有的方法call()
+在Usb数组中，存放Phone结构体和Camera结构体变量，示例代码如下。Phone还有一个特有的方法call(),请遍历usb数组，如果是Phone变量，除了调用usb接口声明的方法外，还需要调用Phone特有的方法call()
 
 ```go
 package main
