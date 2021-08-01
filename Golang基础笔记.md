@@ -1957,7 +1957,7 @@ func main()  {
 3) Golang面向对象编程非常简洁，去掉了传统OOP语言的方法重载，构造函数和析构函数，隐藏的this指针等等。
 4) Golang仍然有面向对象编程的继承，封装和多态的特性，只是实现的方式和其他OOP语言不一样，比如继承：Golang没有extends关键字，继承是通过匿名字段来实现的。
 5) Golang面向对象很优雅，OOP本身就是语言类型系统的一部分，通过接口（interface）关联，耦合性低，也非常灵活。也就是说，Golang中面向接口编程是非常重要的特性。
-    
+   
 
 ###### 10.1.2 结构体与结构体变量（实例/对象）关系
 
@@ -2109,7 +2109,7 @@ fmt.Println(*monster2)
 
 4) 方式四：&
 
-var person1 *Person = &Person
+var person1 *Person = &Person{}
 
 ```go
 type Monster struct {
@@ -2209,6 +2209,38 @@ t.test()
 1) func(a A) test(){} 表示A结构体有一个方法，方法名为test
 2) (a A)体现test方法是和A类型绑定的
 
+**举例说明：**
+
+```go
+package main
+import "fmt"
+type Person struct {
+  Name string
+}
+func (p Person) test(){
+  p.Name = "jack"
+  fmt.Println("test()",p.Name)//jack
+}
+func main() {
+  var p Person
+  p.Name = "tom"
+  p.test()//调用方法 tom
+}
+
+```
+
+**总结：**
+
+1.test方法与Person类型绑定
+
+2.test方法只能通过Person类型的变量来调用，而不能直接调用，也不能通过其他类型的变量来调用
+
+3.func (p Person) test(){},其中p表示哪个Peson变量调用，这个p就是它的副本（值拷贝），这点和函数的值传参是
+
+非常相似的。
+
+4.p这个形参名称可以随意，并非固定。
+
 ###### 10.2.3 快速入门
 ```go
 package main
@@ -2256,7 +2288,39 @@ func main()  {
 ```
 ###### 10.2.4 方法的调用和传参机制
 
-**说明：**方法的调用和传参机制与函数基本一样，不一样的地方是：变量调用方法时，该变量也会当做实参，也会传递给方法（如果变量是值类型，就是值拷贝，如果是引用类型，就是地址拷贝）。
+**说明：**
+
+​		方法的调用和传参机制与函数基本一样，不一样的地方是：变量调用方法时，该变量也会当做实参，也会传递给方法（如果变量是值类型，就是值拷贝，如果是引用类型，就是地址拷贝）。
+
+案例：
+
+```go
+package main
+import "fmt"
+type Person struct {
+  Name string
+}
+func (p Person) getSum(n1,n2 int) int {
+	return n1+n2
+}
+func main() {
+  n1 := 10
+  n2 := 20
+  var p Person
+  res := p.getSum(n1,n2)
+  fmt.Println("res=",res)
+}
+```
+
+
+
+说明：
+
+1.在通过一个变量去调用方法时，其调用机制和函数一样
+
+2.不一样的地方是，变量调用方法时，该变量本身也会当作一个参数传递到方法里面去（如果变量是值类型就是值拷贝，如果是引用类型，便就是地址拷贝）
+
+
 
 ###### 10.2.5 方法的声明
 
@@ -2275,11 +2339,105 @@ func (recevier type) 方法名称(参数列表) (返回值列表) {
 6) return语句不是必须的
 
 ###### 10.2.6 细节讨论
-1) 结构体类型是值类型，在方法调用中遵守值类型的传递机制，是值拷贝。
-2) 如果程序员希望在方法中，修改结构体变量的值，可以通过结构体指针的方式来处理（通常的做法）
-3) Golang的方法作用在指定的数据类型上（即：和指定数据类型绑定），因此自定义的类型，都可以有方法，不仅仅是struct，int32,float64都有自己的方法
-4) 方法的访问范围控制的规则，和函数一样（方法名首写字母小写，只能在本包中使用，大写，则可以在本包和其他包中使用）
-5) 如果一个类型实现了String()这个方法，那么fmt.Println默认会调用这个实例的String()进行输出
+1. 结构体类型是值类型，在方法调用中遵守值类型的传递机制，是值拷贝。
+
+2. 如果程序员希望在方法中，修改结构体变量的值，可以通过结构体指针的方式来处理（通常的做法）。
+
+   案例如下：
+
+```go
+package main 
+
+import "fmt"
+
+type Circle struct {
+  	raduis float64
+}
+
+func (c *Circle) getArea() float64 {
+  return 3.14 * (*c).raduis * (*c).raduis //标准写法
+  //golang编译器底层做了优化，(*c).raduis等价于 c.raduis
+}
+
+func main {
+  var c Circle
+  c.raduis = 5
+  res := (&c).getArea()//标准写法
+  //golang编译器底层做了优化，(&c).getArea()等价于 c.getArea()
+  fmt.Println("面积为",res)
+}
+```
+
+1) Golang的方法作用在指定的数据类型上（即：和指定数据类型绑定），因此自定义的类型，都可以有方法，不仅仅是struct，int32,float64都有自己的方法
+2) 方法的访问范围控制的规则，和函数一样（方法名首写字母小写，只能在本包中使用，大写，则可以在本包和其他包中使用）
+3) 如果一个类型实现了String()这个方法，那么fmt.Println默认会调用这个实例的String()进行输出,案例如下：
+
+```go
+package main 
+
+import "fmt"
+
+type Student struct {
+  Name string
+  Age int
+}
+
+func (s *Student) String() string {	
+  str := fmt.Sprintf("name=[%v] age=[$v]",s.Name,s.Age)
+  return str 
+}
+
+func main() {
+  stu := Student{
+    Name : "tom",
+    Age : 10,
+  }
+  //如果实现了 *Student 类型的string方法，就会自动调用
+  fmt.Println(stu)//这样是找不到String方法的，依然输出{Name tom Age 10}
+  fmt.Println(&stu)//传入指针会找到string方法，输出name=[tom] Age=[10]
+}
+```
+
+###### 10.2.7 方法和函数的区别
+
+1.对于函数，接收者为值类型是，不能传递指针类型变量，反之亦然
+
+2.对于方法（比如struct的方法），接收者为值类型时，可以直接用指针类型的变量调用方法，反之亦然
+
+```go
+package main 
+import "fmt"
+type Person struct {
+  Name string
+}
+func test01(p Person) {
+  fmt.Println(p.Name)
+}
+func test02(p *Person) {
+  fmt.Println(p.Name)
+}
+func (p Person) test03(){
+  fmt.Println("test03()=",p.Name)
+}
+func (p *Person) test04(){
+  fmt.Println("test04()=",p.Name)
+}
+func main(){
+  p := Person{"tom"}
+  test01(p)
+  test02(&p)
+  p.test03()
+  (&p).test03()//从形式上是传了一个地址，但是方法的接收者为值类型，所以接收到的还是一个值拷贝
+  (&p).test04()
+  p.test04()//从形式上是传了一个值拷贝，但是方法的接收者为指针类型，所以接收到的还是一个指针类型参数
+}
+```
+
+**总结：**
+
+1.不管调用形式如何，真正决定是值拷贝还是地址拷贝，看这个方法是和哪个类型绑定的
+
+2.如果是值类型（比如：(p Person)）则为值拷贝，如果是指针类型（p *Person）绑定，则为地址拷贝。
 
 #### 10.3 面向对象编程的应用实例
 
