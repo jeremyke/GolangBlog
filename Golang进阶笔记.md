@@ -55,8 +55,9 @@ func main()  {
   //NewReader返回 
 	reader := bufio.NewReader(file)
 	for {
+    //ReadString是bufio包的一个函数，它读取直到第一次遇到delim字节，返回一个包含已读取的数据和delim字节的字符串。如果ReadString方法在读取到delim之前遇到了错误，它会返回在遇到错误之前读取的数据以及该错误（一般是io.EOF）。当且仅当ReadString方法返回的切片不以delim结尾时，会返回一个非nil的错误。
 		str,err := reader.ReadString('\n')//读到一个换行就结束
-		if err != io.EOF {//io.EOF文件的末尾
+		if err == io.EOF || err !=nil {//io.EOF文件的末尾
 			break
 		}
 		fmt.Print(str)
@@ -504,9 +505,8 @@ hello golang 9
 
 1) 主线程是一个物理线程，直接作用在CPU上的。是重量级的，非常耗费cpu资源。
 2) 协程是从主线程开启的，是轻量级的线程，是逻辑态。对资源消耗相对小。
-3) Golang的协程机制是重要的特点，可以轻松开启上万个协程。其他编程语言的并发机制是一般基于线程的，开启过多的线程，
-    资源耗费大，这里就突出了Golang的优势。
-    
+3) Golang的协程机制是重要的特点，可以轻松开启上万个协程。其他编程语言的并发机制是一般基于线程的，开启过多的线程，资源耗费大，这里就突出了Golang的优势。
+   
 
 #### 16.3 goroutine的调度模型
 
@@ -700,7 +700,8 @@ func main()  {
 1) channel只能存放指定数据类型的数据
 2) channel的数据放满之后，不能再放入了
 3) channel取出数据后，可以继续放入
-4) 在没有使用协程的情况下，如果channel的数据取完之后，再取，就会包dead lock
+4) 在没有使用协程的情况下，如果channel的数据取完之后，再取，就会报错dead lock
+5) 在使用协程读取channel，如果协程没关闭时，不报错，不会返回channel的默认数据，会返回写入的数据,然后一直阻塞等待；如果协程关闭，即使空channel也会返回第一个默认数据。
 
 ```go
 func main() {
@@ -800,6 +801,77 @@ func readData(intChan chan int,exitChan chan bool)  {
 
 ```
 
+**练习：**
+
+```GO
+package main
+
+import "fmt"
+
+//启动一个协程，将1-2000的数放入一个channel中，启动8个协程，从这个协程中取出数据，并计算1+2+...+n的值，放入宁外一个channel 最后8个协程完成后，便历结果channel
+func main() {
+   numChan := make(chan int,2000)
+   readEndChan := make(chan bool,8)
+   resChan := make(chan map[int]int,2000)
+   exitChan := make(chan bool,1)
+
+   go addNum(numChan)
+
+   for j:=1;j<=8;j++ {
+      go readNum(numChan,readEndChan,resChan)
+   }
+
+   go readMap(resChan,exitChan)
+
+   for {
+      _,ok := <- exitChan
+      if !ok {
+         break
+      }
+   }
+}
+
+func addNum(numChan chan int)  {
+   for i:=1;i<=2000;i++ {
+      numChan <- i
+   }
+   close(numChan)
+}
+
+func readNum(numChan chan int,readEndChan chan bool, resChan chan map[int]int)  {
+   for {
+      num,ok := <- numChan
+      if !ok {
+         readEndChan <- true
+         if len(readEndChan) == 8 {
+            close(resChan)
+         }
+         break
+      }
+      res := 0
+      if num>0 {
+         for i := 1;i<=num;i++ {
+            res += i
+         }
+      }
+      aMap := make(map[int]int,1)
+      aMap[num] = res
+      resChan <- aMap
+   }
+}
+
+func readMap(resChan chan map[int]int,exitChan chan bool)  {
+   for {
+      v,ok := <- resChan
+      if !ok {
+         break
+      }
+      fmt.Println(v)
+   }
+   close(exitChan)
+}
+```
+
 ###### 16.5.8 goroutine和channel协同使用-阻塞
 
 如上述案例，如果intChan的cap为10，注释掉go readData(intChan,exitChan)函数。也就是说只是向管道写入数据，而没有读取数据，
@@ -891,6 +963,44 @@ func main() {
 	var chan2 chan<- int//只写
 
 	var chan3 <-chan int//只读
+
+//案例
+package main
+func main() {
+  achan := make(chan int,10)
+  exitChan := make(chan struct{},2)
+  go send()
+  go recv()
+  var total=0
+  for _ = range exitChain{
+    total ++
+    if total == 2 {
+      break
+    }
+  }
+  fmt.println("程序结束了...")
+}
+//申明一个可写的管道
+func send(achan chan<- int,exitChan chan struct{}){
+  for i:=1;i<=10;i++ {
+    achan <- i
+  }
+  close(achan)
+  var a strct{}
+  exitChan <- a
+}
+//声明一个可读的管道
+func recv(achan <-chan int,exitChan chan struct{}){
+  for {
+    v,ok := <- achan
+    if !ok {
+      break
+    }
+    fmt.Println(v)
+  }
+  var a strct{}
+  exitChan <- a
+}
 ```
 2) 使用select可以解决从管道取数据的阻塞问题
 
@@ -906,10 +1016,13 @@ for {
             //...
         default:
             //都取不到数据的逻辑块
+      			break //这里break不会退出select，退出可以使用return 或者break label
     }
 }
 ```
-3) goroutine中使用recover，解决协程中出现panic，导致整个程序崩溃问题。
+3. goroutine中使用recover，解决协程中出现panic，导致整个程序崩溃问题。
+
+   > 程序的一个协程如果出现panic异常，如果不捕获这个panic,或导致整个程序崩溃，需要在goroutine中使用recover捕获panic进行处理，这样即使该协程出现panic异常，主线程不会受影响，仍会正常执行。
 
 ```go
 package main
@@ -926,7 +1039,7 @@ func sayHello()  {
 }
 
 func test()  {
-	defer func() {
+	defer func() {//捕获painc异常
 		if err := recover();err!=nil {
 			fmt.Println("出错了:",err)
 		}
@@ -947,9 +1060,18 @@ func main()  {
 
 #### 17.1 反射的引出
 
-1) 结构体json序列化后，为什么key-val的key值是结构体的tag的值，而不是字段的名称？用到反射
+1. 结构体json序列化后，为什么key-val的key值是结构体的tag的值，而不是字段的名称？用到反射
 
-2) 使用反射机制编写函数适配器，桥连接。
+   ```go
+   type student struct{
+     Name 	`json:"name"`
+     Id 		`json:"id"`
+   } 
+   ```
+
+   
+
+2. 使用反射机制编写函数适配器，桥连接。
 ```go
 test1 = func(v1 int,v2 int){
     t.Log(v1,v2)
@@ -970,13 +1092,18 @@ bridge(test2,1,2,"test2")
 2) 如果是结构体实例，还可以获取到结构体本身的信息（包括结构体字段，方法）
 3) 通过反射，可以修改变量的值，还可以调用关联的方法。
 4) 使用反射，需要import("reflect")
+5) 反射示意图：
+
+![image-20210925232953258](./pic/image-20210925232953258.png)
 
 #### 17.3 反射的重要函数和概念
 
-1) reflect.TypeOf(变量名)，获取变量的类型，返回reflect.Type类型
-2) reflect.ValueOf(变量名)，返回reflect.Value类型，reflect.Value是一个结构体类型。通过reflect.Value可
+1) reflect.TypeOf(变量名)，获取变量的类型，返回reflect.Type类型，reflect.Type是一个接口。
+2) reflect.ValueOf(变量名)，获取变量的值，返回reflect.Value类型，reflect.Value是一个结构体类型。通过reflect.Value可
     以获取到关于变量的很多信息。
 3) 变量，interface{}和reflect.Value是可以相互转换的，这点在实际开发中会经常使用到。
+
+![image-20210925234053817](./pic/image-20210925234053817.png)
 
 ```go
 type Stu struct {

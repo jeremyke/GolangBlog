@@ -7,7 +7,7 @@ import (
 
 func main() {
 	//打开一个文件
-	file, err := os.Open("/home/jeremyke/Desktop/a1.txt")
+	file, err := os.Open("/Users/jeremyke/GolandProjects/src/goStudy/src/go_code/chapter14/filedemo/test.txt")
 	if err != nil {
 		fmt.Println("打开失败：", err)
 	}

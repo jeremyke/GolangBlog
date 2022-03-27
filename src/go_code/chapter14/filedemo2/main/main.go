@@ -9,7 +9,7 @@ import (
 
 func main() {
 	//打开一个文件
-	file, err := os.Open("/home/jeremyke/Desktop/b.txt")
+	file, err := os.Open("/Users/jeremyke/GolandProjects/src/goStudy/src/go_code/chapter14/filedemo/test.txt")
 	if err != nil {
 		fmt.Println("打开失败：", err)
 	}
@@ -20,7 +20,7 @@ func main() {
 	reader := bufio.NewReader(file)
 	for {
 		str, err := reader.ReadString('\n') //读到一个换行就结束
-		if err != io.EOF {                  //io.EOF文件的末尾
+		if err == io.EOF || err != nil {    //io.EOF文件的末尾
 			break
 		}
 		fmt.Print(str)
