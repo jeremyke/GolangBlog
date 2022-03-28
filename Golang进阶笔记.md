@@ -1156,6 +1156,11 @@ func main()  {
 
 2) 结构体实例进行反射的基本操作
 
+使用反射遍历结构体的字段，调用结构体的方法，并获取结构体标签的值。
+
+`fun(value)Method` :默认按方法名排序对应i值，i从0开始
+
+`func(value)Call` :传入参数和返回参数，是[]reflect.Value
 ```go
 package main
 
@@ -1238,20 +1243,119 @@ func main()  {
 
 ```
 6) reflect.Value.Elem()就是对指针取地址的含义
+   
+`Go语言程序中对指针获取反射对象时，可以通过 reflect.Elem() 方法获取这个指针指向的元素类型`
+
 
 
 #### 17.6 反射的实践
 
 1) 使用反射来遍历结构体的字段，调用结构体的方法，并获取结构体标签的值：func (Value)Method(i int) Name,
     func (Value) Call(in []value)[]value
->案例缺失,后期补上！
+   
+```go
+package main
+
+import (
+	"fmt"
+	"reflect"
+	"strconv"
+)
+
+type Student struct {
+	Name string `json:"name"`
+	Sex string `json:"sex"`
+	Age int `json:"age"`
+}
+
+func (s Student) DoHomework(as string)  {
+	fmt.Println(s.Name + "is doing " + as)
+}
+
+func reflectTest(p interface{})  {
+	//Go语言程序中对指针获取反射对象时，可以通过 reflect.Elem() 方法获取这个指针指向的元素类型
+
+	//获取reflect.Type 类型
+	typ := reflect.TypeOf(p)
+	//获取reflect.Value 类型
+	val := reflect.ValueOf(p)
+
+	//字段个数
+	fieldNum := val.Elem().NumField()
+	fmt.Println("fieldNum=",fieldNum)
+
+	for i:=0;i<fieldNum;i++ {
+		fmt.Println(typ.Elem().Field(i).Name + "的标签是：" + typ.Elem().Field(i).Tag.Get("json"))
+		fmt.Println(typ.Elem().Field(i).Name + "的值是：" + val.Elem().Field(i).String())
+	}
+
+	val.Elem().Field(0).SetString("Esther")
+	val.Elem().Field(1).SetString("女")
+	fmt.Println(typ.Elem().Field(0).Name + "的值是：" + val.Elem().Field(0).String())
+
+	funcNum := val.Elem().NumMethod()
+	fmt.Println("一共有" + strconv.Itoa(funcNum) + "个方法")
+
+	var param []reflect.Value
+	param = append(param,reflect.ValueOf("English"))
+	val.Elem().Method(0).Call(param)
+}
+
+func main() {
+	aa := Student{
+		"keke",
+		"男",
+		20,
+	}
+	reflectTest(&aa)
+	fmt.Println(aa)
+}
+```
 
 2) 定义一个适配器函数用作统一处理接口
->案例缺失,后期补上！
+
+```go
+package main
+
+import (
+	"fmt"
+	"reflect"
+)
+
+
+func main() {
+	tes1 := func(v1,v2 int){
+		fmt.Println("两数之和为：",v1+v2)
+	}
+	tes2 := func(v1 int,v2 int, s string){
+		fmt.Printf("%s的身高为%v，年龄为%v",s,v1,v2)
+	}
+
+	bridge := func(call interface{},param... interface{}) {
+		//参数
+		n := len(param)
+		var inValue []reflect.Value
+		for i:=0;i<n;i++ {
+			inValue = append(inValue,reflect.ValueOf(param[i]))
+		}
+		//方法
+		inFun := reflect.ValueOf(call)
+		//调用
+		inFun.Call(inValue)
+	}
+	bridge(tes1,12,23)
+	bridge(tes2,12,23,"keke")
+}
+```
 
 3) 使用反射操作任意结构体类型
 
+![image](./pic/20220328-233302@2x.png)
+
+
 4) 使用反射创建并操作结构体
+
+![image](./pic/20220328-234525@2x.png)
 
 ## 18.TCP Socket 编程
 
