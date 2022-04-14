@@ -8,10 +8,8 @@ import (
 
 func main() {
 
+	//一、监听端口
 	fmt.Println("服务器开始监听....")
-	//net.Listen("tcp", "0.0.0.0:8888")
-	//1. tcp 表示使用网络协议是tcp
-	//2. 0.0.0.0:8888 表示在本地监听 8888端口
 	listen, err := net.Listen("tcp", "0.0.0.0:8888")
 	if err != nil {
 		fmt.Println("listen err=", err)
@@ -19,7 +17,7 @@ func main() {
 	}
 	defer listen.Close() //延时关闭listen
 
-	//循环等待客户端来链接我
+	//二、等待链接
 	for {
 		//等待客户端链接
 		fmt.Println("等待客户端来链接....")
@@ -37,13 +35,14 @@ func main() {
 	//fmt.Printf("listen suc=%v\n", listen)
 }
 
+//三、处理请求
 func process(conn net.Conn) {
 
 	//这里我们循环的接收客户端发送的数据
 	defer conn.Close() //关闭conn
 
 	for {
-		//创建一个新的切片
+		//3.1 创建一个新的切片接受客户端数据
 		buf := make([]byte, 1024)
 		//conn.Read(buf)
 		//1. 等待客户端通过conn发送信息

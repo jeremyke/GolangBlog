@@ -1580,8 +1580,127 @@ c := pool.Get()//从连接池中取出一个链接
 pool.Close()//关闭连接池，一旦关闭就无法从连接池中再取数据了
 ```
 
+## 20. 数据结构和算法介绍
+
+程序 = 数据结构 + 算法
+
+数据结构是算法的基础。
+
+#### 20.1 稀疏数组（sparse array）
+
+1) 基本介绍
+
+当一个数组中大部分元素为0，或者为同一个值的数组时，可以使用稀疏数组来保存该数组。
+
+稀疏数组的处理方法是：
+①记录数组一共有几行几列，有多少个不同的值
+②把具有不同值的元素的行列及值记录在一个小规模的数组中，从而缩小程序规模
+
+2）小案例
+
+![image](./pic/WX20220413-232855@2x.png)
+
+3)应用案例
+
+需求：使用稀疏数组，来保留类似前面的二维数组（棋盘、地图），把稀疏数组存盘，并且可以重新恢复原来的二维数组
+
+```go
+package main
+
+import (
+	"fmt"
+)
+
+//稀疏数组
+func main() {
+	var chessMap [11][11]int
+	chessMap[1][3] = 1 //白
+	chessMap[2][3] = 2 //黑
+
+	var digitalNum int
+	for _,v1 := range chessMap {
+		for _,v2 := range v1 {
+			if v2 != 0 {
+				digitalNum ++
+			}
+			fmt.Printf("%d\t",v2)
+		}
+		fmt.Println("\t")
+	}
+
+	//转为稀疏数组
+	sparseArr := make([][]int,digitalNum+1)
+	sparseArrFirst := []int{len(chessMap),len(chessMap[0]),0}
+	sparseArr[0] = append(sparseArrFirst)
+	n := 1
+	for k1,v1 := range chessMap {
+		for k2,v2 := range v1 {
+			if v2 != 0 {
+				sparseTmp := []int{k1+1,k2+1,v2}
+				sparseArr[n] = append(sparseTmp)
+				n ++
+			}
+		}
+	}
+
+	for _,v1 := range sparseArr {
+		for _,v2 := range v1 {
+			fmt.Printf("%d\t",v2)
+		}
+		fmt.Println("\t")
+	}
+
+	//转为原始数组
+	row := sparseArr[0][0]
+	col := sparseArr[0][1]
+
+	var toRawArr [][]int
+	for i := 1;i < row;i ++ {
+		toRawArr = append(toRawArr,make([]int,col))
+	}
+
+	for k3,v3 := range sparseArr {
+		if k3 == 0 {
+			continue
+		}
+		toRawArr[v3[0]-1][v3[1]-1] = v3[2]
+	}
+
+	for _,v1 := range toRawArr {
+		for _,v2 := range v1 {
+			fmt.Printf("%d\t",v2)
+		}
+		fmt.Println("\t")
+	}
 
 
+	
+
+
+}
+
+
+```
+
+#### 20.2 数组模拟队列分析
+
+1）队列（queue）
+
+队列是一个有序列表，可以用数组或者链表实现。遵循先进先出原则。
+
+说明：
+
+- 队列本身是有序列表，若使用数组的结构来存储队列的数据，则队列数组的声明如下，maxSize为最大容量。
+- 队列的输出和输入分别从前后端处理，因此需要两个变量front（不含当前元素）和rear（含当前元素）分别来标记队列的前后端下标，
+front会随着数据输出而改变，rear随着数据输入而改变。
+
+![image](./pic/WX20220415-005055@2x.png)
+
+思想：
+
+- 我们将数据存入队列时称为"addqueue",addqueue分为两步： 
+  - 尾指针后移（rear+1,front==real空），
+  - 若尾指针rear小于等于队列的最大下标maxSize-1,则将数据存入rear所指的数组元素中，否则无法存入数据。
 
 
 
