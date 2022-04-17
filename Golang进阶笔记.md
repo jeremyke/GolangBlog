@@ -1868,8 +1868,474 @@ func main() {
 	}
 
 }
+```
+
+#### 20.3 链表
+
+链表是有序的列表
+
+###### 20.3.1 单向链表
+
+1）示意图
+
+![img.png](pic/img0417.png)
+
+2）说明
+
+一般来说，为了比较好地对单链表进行增删改查操作，我们会给它设置一个头结点，头结点的作用
+是用来标识链表头，本身这个结点不存放数据。
+
+3）应用实例
+使用带head头的单向链表实现水浒英雄排行榜管理。
+
+```go
+package main
+
+import "fmt"
+
+type HeroNode struct {
+	no       int
+	name     string
+	nickname string
+	next     *HeroNode
+}
+
+func AddHero(head , newHero *HeroNode) {
+	temp := head
+	for {
+		if temp.next == nil {
+			//找到了最后一个结点
+			break
+		}
+		//如果没有找到，把当前结点的next指向临时结点
+		temp = temp.next
+	}
+	temp.next = newHero
+}
+
+// 按照no顺序插入
+func AddHeroNoAsc(head , newHero *HeroNode) {
+	tempNode := head
+	for {
+		//找到比新结点小1的节点
+
+		//最后一个结点
+		if tempNode.next == nil {
+			break
+		}
+		if  tempNode.no < newHero.no && tempNode.next.no >= newHero.no {
+			break
+		}
+		//如果没有找到，把当前结点的next指向临时结点
+		tempNode = tempNode.next
+	}
+	//开始插入
+	myNextNode := tempNode.next
+	tempNode.next = newHero
+	newHero.next = myNextNode
+}
+
+func DelNode(head,delNode *HeroNode) error {
+	tempNode := head
+	for {
+		//找到比需要删除的节点的前一个节点
+		if delNode.no == 0 {
+			return fmt.Errorf("头结点不可删除")
+		}
+		if tempNode.next == nil {
+			return fmt.Errorf("没有找到需要删除的节点")
+		}
+		if  tempNode.next.no == delNode.no {
+			break
+		}
+		//如果没有找到，把当前结点的next指向临时结点
+		tempNode = tempNode.next
+	}
+	//开始删除
+	tempNode.next = delNode.next
+	return nil
+}
+
+func showHeroLink(head *HeroNode) {
+	temp := head
+	for {
+		if temp == nil {
+			break
+		}
+		fmt.Printf("[%d , %s , %s]->", temp.no, temp.name, temp.nickname)
+		temp = temp.next
+	}
+	fmt.Println()
+}
+
+
+func main() {
+	head := &HeroNode{}
+	hero1 := &HeroNode{
+		no:       1,
+		name:     "宋江",
+		nickname: "及时雨",
+	}
+	hero3 := &HeroNode{
+		no:       3,
+		name:     "林冲",
+		nickname: "豹子头",
+	}
+	hero2 := &HeroNode{
+		no:       2,
+		name:     "卢俊义",
+		nickname: "玉麒麟",
+	}
+
+	hero7 := &HeroNode{
+		no:       7,
+		name:     "AA",
+		nickname: "AA!",
+	}
+
+	hero5 := &HeroNode{
+		no:       5,
+		name:     "BB",
+		nickname: "BB!",
+	}
+
+	//增加节点
+	//AddHero(head, hero1)
+	//AddHero(head, hero2)
+	//AddHero(head, hero3)
+	AddHeroNoAsc(head, hero1)
+	AddHeroNoAsc(head, hero5)
+	AddHeroNoAsc(head, hero3)
+	AddHeroNoAsc(head, hero2)
+	AddHeroNoAsc(head, hero7)
+	showHeroLink(head)
+	//删除节点
+	err := DelNode(head, hero3)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	showHeroLink(head)
+
+}
 
 ```
+
+4) 单向链表的缺点分析
+
+- 单向链表查找方向只能一个方向，双向链表可以向前或者向后查找
+- 单向链表不能自我删除，需要借助辅助节点，而双向链表可以自我删除。
+
+###### 20.3.2 双向链表
+
+![img.png](pic/img041801.png)
+
+```go
+package main
+
+import "fmt"
+
+type HeroNode struct {
+	no       int
+	name     string
+	nickname string
+	pre		 *HeroNode
+	next     *HeroNode
+}
+
+func AddHero(head , newHero *HeroNode) {
+	temp := head
+	for {
+		if temp.next == nil {
+			//找到了最后一个结点
+			break
+		}
+		//如果没有找到，把当前结点的next指向临时结点
+		temp = temp.next
+	}
+	temp.next = newHero
+	newHero.pre = temp
+}
+
+// 按照no顺序插入
+func AddHeroNoAsc(head , newHero *HeroNode) {
+	tempNode := head
+	for {
+		//找到比新结点小且下一个节点值比新节点大的节点
+
+		//最后一个结点
+		if tempNode.next == nil {
+			break
+		}
+		if  tempNode.no < newHero.no && tempNode.next.no >= newHero.no {
+			break
+		}
+		//如果没有找到，把当前结点的next指向临时结点
+		tempNode = tempNode.next
+	}
+	//开始插入
+	myNextNode := tempNode.next
+	tempNode.next = newHero
+	newHero.pre = tempNode
+	newHero.next = myNextNode
+	if myNextNode != nil {
+		myNextNode.pre = newHero
+	}
+
+}
+
+func DelNode(head,delNode *HeroNode) error {
+	tempNode := head
+	for {
+		//找到比需要删除的节点的前一个节点
+		if delNode.no == 0 {
+			return fmt.Errorf("头结点不可删除")
+		}
+		if tempNode.next == nil {
+			return fmt.Errorf("没有找到需要删除的节点")
+		}
+		if  tempNode.next.no == delNode.no {
+			break
+		}
+		//如果没有找到，把当前结点的next指向临时结点
+		tempNode = tempNode.next
+	}
+	//开始删除
+	tempNode.next = delNode.next
+	delNode.next.pre = tempNode
+	return nil
+}
+
+func showHeroLink(head *HeroNode) {
+	temp := head
+	if temp.next == nil {
+		fmt.Println("空链表")
+		return
+	}
+	for {
+		fmt.Printf("[%d , %s , %s]->", temp.next.no, temp.next.name, temp.next.nickname)
+		temp = temp.next
+		if temp.next == nil {
+			break
+		}
+	}
+	fmt.Println()
+}
+
+
+func showHeroLinkDesc(head *HeroNode) {
+	//temp移到最后一个元素
+	temp := head
+	if temp.next == nil {
+		fmt.Println("空链表")
+		return
+	}
+	for {
+		if temp.next == nil {
+			break
+		}
+		temp = temp.next
+	}
+	//倒序便历链表
+	for {
+		fmt.Printf("[%d , %s , %s]->", temp.no, temp.name, temp.nickname)
+		temp = temp.pre
+		if temp.pre == nil {
+			break
+		}
+	}
+	fmt.Println()
+}
+
+
+func main() {
+	head := &HeroNode{}
+	hero1 := &HeroNode{
+		no:       1,
+		name:     "宋江",
+		nickname: "及时雨",
+	}
+	hero3 := &HeroNode{
+		no:       3,
+		name:     "林冲",
+		nickname: "豹子头",
+	}
+	hero2 := &HeroNode{
+		no:       2,
+		name:     "卢俊义",
+		nickname: "玉麒麟",
+	}
+
+	hero7 := &HeroNode{
+		no:       7,
+		name:     "AA",
+		nickname: "AA!",
+	}
+
+	hero5 := &HeroNode{
+		no:       5,
+		name:     "BB",
+		nickname: "BB!",
+	}
+
+	//增加节点
+	//AddHero(head, hero1)
+	//AddHero(head, hero2)
+	//AddHero(head, hero3)
+	AddHeroNoAsc(head, hero1)
+	AddHeroNoAsc(head, hero5)
+	AddHeroNoAsc(head, hero3)
+	AddHeroNoAsc(head, hero2)
+	AddHeroNoAsc(head, hero7)
+	showHeroLink(head)
+	showHeroLinkDesc(head)
+	//删除节点
+	err := DelNode(head, hero3)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	showHeroLink(head)
+
+}
+```
+###### 20.3.3 环形双向链表
+
+![img.png](pic/img041802.png)
+
+```go
+package main
+
+import "fmt"
+
+type CatNode struct {
+	no       int
+	name     string
+	next     *CatNode
+}
+
+func main() {
+	headNode := &CatNode{}
+
+	node1 := &CatNode{no:1, name:"tom"}
+	node2 := &CatNode{no:2, name:"jerry"}
+	node3 := &CatNode{no:3, name:"cate"}
+	node4 := &CatNode{no:4, name:"poul"}
+
+	AddCate(headNode, node1)
+	AddCate(headNode, node2)
+	AddCate(headNode, node3)
+	AddCate(headNode, node4)
+	showCateNode(headNode)
+	headNode = delCateNode(headNode, node4)
+	showCateNode(headNode)
+}
+
+func AddCate(head,NewCat *CatNode) {
+	//判断是否是头节点
+	if head.next == nil {
+		head.no = NewCat.no
+		head.name = NewCat.name
+		head.next = head
+		return
+	}
+	tempNode := head
+	for {
+		if tempNode.next == head {
+			break
+		}
+		tempNode = tempNode.next
+	}
+	//加入链表
+	tempNode.next = NewCat
+	NewCat.next = head
+
+}
+
+func delCateNode(head,delNod *CatNode) (headNode *CatNode) {
+	headNode = head
+	if head.next == nil {
+		fmt.Println("链表为空")
+		return
+	}
+
+	//1个元素的链表
+	if head.next == head {
+		if head.no == delNod.no {
+			head.no = 0
+			head.name = ""
+			head.next = nil
+			return
+		}else {
+			fmt.Println("未找到要删除的节点")
+			return
+		}
+	}
+
+	//多个元素的链表
+	tempNode := head
+	rearNode := head
+	for {
+		if rearNode.next == head {
+			break
+		}
+		rearNode = rearNode.next
+	}
+
+	for {
+		//头节点就是需要删除的节点
+		if head.no == delNod.no {
+			headNode = head.next
+			rearNode.next = headNode
+			break
+		}
+		//中间节点是需要删除的节点
+		if tempNode.next == delNod {
+			tempNode.next = delNod.next
+			break
+		}
+		//尾节点是需要删除的节点
+		if tempNode.next == head {
+			if tempNode.no == delNod.no {
+				//找到倒数第二个节点
+				descSecondNode := head
+				for  {
+					if descSecondNode.next == tempNode {
+						break
+					}
+					descSecondNode = descSecondNode.next
+				}
+				descSecondNode.next = head
+			}else{
+				fmt.Println("未找到要删除的节点")
+				return
+			}
+			break
+		}
+		tempNode = tempNode.next
+	}
+	return
+}
+
+func showCateNode(head *CatNode) {
+	tempNode := head
+	if tempNode.next == nil {
+		fmt.Println("链表为空")
+		return
+	}
+	for {
+		fmt.Printf("%d %s-->", tempNode.no, tempNode.name)
+		if tempNode.next == head {
+			break
+		}
+		tempNode = tempNode.next
+	}
+	fmt.Println()
+}
+
+
+
+```
+
+
 
 
 
