@@ -2201,6 +2201,10 @@ func main() {
 
 ![img.png](pic/img041802.png)
 
+环形单向链表的删除思想：
+
+![img.png](pic/img041803.png)
+
 ```go
 package main
 

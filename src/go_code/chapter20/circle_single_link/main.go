@@ -48,6 +48,8 @@ func AddCate(head, NewCat *CatNode) {
 
 func delCateNode(head, delNod *CatNode) (headNode *CatNode) {
 	headNode = head
+
+	//空链表
 	if head.next == nil {
 		fmt.Println("链表为空")
 		return
