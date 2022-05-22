@@ -2445,14 +2445,168 @@ func main() {
 
 ```
 
+#### 20.4 排序
 
+###### 20.4.1  介绍
 
+排序是将一组数据，依指定的顺序进行排列的过程，常见排序有：冒泡排序、选择排序、插入排序、快速排序
 
+###### 20.4.2 冒泡排序
 
+思想：通过对待排序序列从后向前（从下标较大的元素开始），依次比较相邻元素的排序码，若发现是逆序则交换，
+使排序码较小的元素逐渐从后部移到前部（从下标较大的单元移向下标较小的单元）。
+```go
+package main
 
+import "fmt"
 
+func bubble(sortArr *[]int) {
+	if sortArr != nil && len(*sortArr) >= 1 {
+		for k := len(*sortArr) - 1; k > 0; k-- {
+			for i := k; i > 0; i-- {
+				if (*sortArr)[i] < (*sortArr)[i-1] {
+					(*sortArr)[i], (*sortArr)[i-1] = (*sortArr)[i-1], (*sortArr)[i]
+				}
+			}
+		}
+	}
+}
 
+func main() {
+	aa := []int{7, 3, 8, 1, 9, 4, 10}
+	bubble(&aa)
+	fmt.Println(aa)
+}
 
+```
+###### 20.4.3 选择排序
+
+思想：从待排序的序列中，按指定的规则选择某一元素，经过和其他元素重整，再依照原则交换位置后达到排序目的。
+
+```go
+package main
+
+import "fmt"
+
+//倒序
+func selectSort(sortArr *[]int) {
+	if sortArr != nil && len(*sortArr) >= 1 {
+		for i := 0; i < len(*sortArr); i++ {
+			var maxNum int
+			var maxNumIndex int
+			for j := i; j < len(*sortArr); j++ {
+				if (*sortArr)[j] >= maxNum {
+					maxNum, maxNumIndex = (*sortArr)[j], j
+				}
+			}
+			if (*sortArr)[i] < maxNum {
+				(*sortArr)[i], (*sortArr)[maxNumIndex] = maxNum, (*sortArr)[i]
+			}
+		}
+	}
+}
+
+func main() {
+	aa := []int{7, 3, 8, 1, 9, 4, 10}
+	selectSort(&aa)
+	fmt.Println(aa)
+}
+
+```
+###### 20.4.4 插入排序
+
+思想：将待排序的序列中排序的元素以插入的方式寻找该元素适当的位置，以达到排序的目的。 假设前面 n-1(其中 n>=2)个数已经是排好顺序的序列，
+现将第n个数插到前面已经排好的序列中，然后找到合适自己的位置，使得插入第n个数的这个序列也是排好顺序的序列。按照此法对所有元素进行插入，
+直到整个序列排为有序的过程，称为插入排序。
+可参考链接：https://www.runoob.com/data-structures/insertion-sort.html
+
+```go
+package main
+
+import "fmt"
+
+//倒序
+func insertSort(paramArr *[]int) {
+	for i := 1; i < len(*paramArr); i++ {
+		for j := i; j > 0; j-- {
+			if (*paramArr)[j-1] < (*paramArr)[j] {
+				(*paramArr)[j-1], (*paramArr)[j] = (*paramArr)[j], (*paramArr)[j-1]
+			}
+		}
+	}
+}
+
+func main() {
+	aa := []int{7, 3, 8, 1, 9, 4, 10}
+	insertSort(&aa)
+	fmt.Println(aa)
+}
+```
+
+###### 20.4.5 快速排序
+
+思想：通过一趟排序，将待排序的序列分割成两部分，其中一部分的所有数据都比另一部分的所有数据要小，然后
+再按此方法对这两部分数据分别进行快速排序，整个排序过程可以递归进行，以此达到整个数据变成有序序列。
+
+![img](./pic/img052201.png)
+
+```go
+package main
+
+import "fmt"
+
+func quickSort(left, right int, paramArr *[]int) {
+	l := left
+	r := right
+	//找到中间点
+	pivot := (*paramArr)[(left+right)/2]
+	//for循环把小于pivot的数放在左边；大的放在右边
+	for l < r {
+		//先从pivot左边找到大于等于pivot的数
+		for (*paramArr)[l] < pivot {
+			l++
+		}
+		//先从pivot右边找到小于等于pivot的数
+		for (*paramArr)[r] > pivot {
+			r--
+		}
+		//本次分解任务完成
+		if l >= r {
+			break
+		}
+		//找到左边大于中间值的数和右边小于中间值的数据后， 开始交换
+		(*paramArr)[l], (*paramArr)[r] = (*paramArr)[r], (*paramArr)[l]
+
+		//交换后，如果左边的值等于中间值的数，下次就不比较
+		if (*paramArr)[l] == pivot {
+			r--
+		}
+		//交换后，如果右边的值等于中间值的数，下次就不比较
+		if (*paramArr)[r] == pivot {
+			l++
+		}
+	}
+	//如果l==r再移动一位
+	if l == r {
+		l++
+		r--
+	}
+	//递归
+	if left < r {
+		quickSort(left, r, paramArr)
+	}
+	if right > l {
+		quickSort(l, right, paramArr)
+	}
+}
+
+func main() {
+	aa := []int{7, 3, 8, 1, 9, 4, 10}
+	quickSort(0, len(aa)-1, &aa)
+	fmt.Println(aa)
+}
+
+```
 
 
 
