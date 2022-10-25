@@ -2614,6 +2614,8 @@ func main() {
 
 栈是一种先入后出的有序列表。限制了线性表中元素的插入和删除只能在线性表的同一端进行。允许插入和删除的一端，称为栈顶（Top），另一端为固定的一端，称为栈底（Bottom）。
 
+![img](./pic/img.png)
+
 ###### 20.5.2 栈的应用
 
 a. 子程序的调用：在切换到子程序前，先将下一个指令的地址存入堆栈中，指导子程序处理完成再将地址取出，回到原来的程序。
@@ -2625,6 +2627,357 @@ e. 图形的深度优化搜索法。
 ###### 20.5.3 栈的快速入门
 
 1.用数组来模拟出栈,入栈和便历
+
+```go
+package main
+
+import (
+	"errors"
+	"fmt"
+)
+
+type Stack struct {
+	MaxTop int    //栈最大可以存放的数的个数
+	Top    int    //表示栈顶，因为栈顶固定，因此我们可以直接使用Top
+	arr    [5]int //数组模拟栈
+}
+
+func main() {
+	myStack := Stack{
+		MaxTop: 5,
+		Top:    -1, //默认值，栈为空
+	}
+	myStack.Push(1)
+	myStack.Push(4)
+	myStack.Push(9)
+	fmt.Println("top是：", myStack.Top)
+	myStack.List()
+
+	fmt.Println("开始pop1个")
+	val, _ := myStack.Pop()
+	fmt.Println("top是：", myStack.Top)
+	fmt.Println("pop值：", val)
+	myStack.List()
+
+	fmt.Println("再pop1个")
+	val2, _ := myStack.Pop()
+	fmt.Println("top是：", myStack.Top)
+	fmt.Println("pop值：", val2)
+	myStack.List()
+
+	fmt.Println("再pop1个")
+	val3, _ := myStack.Pop()
+	fmt.Println("top是：", myStack.Top)
+	fmt.Println("pop值：", val3)
+	myStack.List()
+
+}
+
+func (s *Stack) Push(val int) error {
+	if s.Top == s.MaxTop-1 {
+		return errors.New("栈满了")
+	}
+
+	s.Top++
+	s.arr[s.Top] = val
+
+	return nil
+}
+
+func (s *Stack) Pop() (int, error) {
+	if s.Top == -1 {
+		return 0, errors.New("空栈")
+	}
+
+	res := s.arr[s.Top]
+	s.arr[s.Top] = 0
+	s.Top--
+	return res, nil
+}
+
+func (s *Stack) List() {
+	if s.Top == -1 {
+		fmt.Println("空栈")
+	}
+	for i := 0; i < s.Top+1; i++ {
+		fmt.Printf("arr[%v]=%v\n", i, s.arr[i])
+	}
+}
+```
+
+##### 20.5.4 栈实现综合计算器
+
+###### 算法
+
+![img](./pic/img_1.png)
+
+```go
+package main
+
+import (
+	"errors"
+	"fmt"
+	"strconv"
+	"unicode"
+)
+
+type Stack struct {
+	MaxTop int     //栈最大可以存放的数的个数
+	Top    int     //表示栈顶
+	arr    [20]int //数组模拟栈
+}
+
+var itobMap = map[int]byte{
+	1: '+',
+	2: '-',
+	3: '*',
+	4: '/',
+}
+var btoiMap = map[byte]int{
+	'+': 1,
+	'-': 2,
+	'*': 3,
+	'/': 4,
+}
+
+var opePriorityMap = map[byte]int{
+	'+': 1,
+	'-': 1,
+	'*': 2,
+	'/': 2,
+}
+
+func main() {
+	expStr := "3+2*6-2"
+	expStrArr := []byte(expStr)
+	a := operation(expStrArr)
+	fmt.Println(a)
+
+}
+
+func (s *Stack) Push(val int) error {
+	if s.Top == s.MaxTop-1 {
+		return errors.New("栈满了")
+	}
+
+	s.Top++
+	s.arr[s.Top] = val
+
+	return nil
+}
+
+func (s *Stack) Pop() (int, error) {
+	if s.Top == -1 {
+		return 0, errors.New("空栈")
+	}
+
+	res := s.arr[s.Top]
+	s.arr[s.Top] = 0
+	s.Top--
+	return res, nil
+}
+
+func (s *Stack) List() {
+	if s.Top == -1 {
+		fmt.Println("空栈")
+	}
+	for i := 0; i < s.Top+1; i++ {
+		fmt.Printf("arr[%v]=%v\n", i, s.arr[i])
+	}
+}
+
+func operation(expStr []byte) int {
+	numStack := Stack{
+		MaxTop: 20,
+		Top:    -1,
+	}
+	opeStack := Stack{
+		MaxTop: 20,
+		Top:    -1,
+	}
+	//入栈
+	for _, v := range expStr {
+		vInt, _ := strconv.Atoi(string(v))
+		if unicode.IsDigit(rune(v)) {
+			numStack.Push(vInt)
+		} else {
+			if opeStack.Top == -1 {
+				opeStack.Push(btoiMap[v])
+			} else {
+				if opeStack.arr[opeStack.Top] >= opePriorityMap[v] {
+					opeVal, _ := opeStack.Pop()
+					numVal2, _ := numStack.Pop()
+					numVal1, _ := numStack.Pop()
+					resTmp := simpleOpe(numVal1, numVal2, itobMap[opeVal])
+					numStack.Push(resTmp)
+					opeStack.Push(btoiMap[v])
+				} else {
+					opeStack.Push(btoiMap[v])
+				}
+			}
+		}
+	}
+	//符号出栈
+	for opeStack.Top >= 0 {
+		opeTmp, _ := opeStack.Pop()
+		numVal2, _ := numStack.Pop()
+		numVal1, _ := numStack.Pop()
+		resTmp := simpleOpe(numVal1, numVal2, itobMap[opeTmp])
+		numStack.Push(resTmp)
+	}
+
+	res, _ := numStack.Pop()
+	return res
+}
+
+func simpleOpe(a, b int, operation byte) int {
+	if operation == '+' {
+		return a + b
+	} else if operation == '-' {
+		return a - b
+	} else if operation == '*' {
+		return a * b
+	} else {
+		return a / b
+	}
+}
+
+```
+
+### 20.6 递归
+
+递归 就是函数自己调用自己，每次调用时传入不同的变量。
+
+#### 20.6.1 快速入门
+
+打印问题:
+
+```go
+package main
+
+import "fmt"
+
+func printLog(n int) {
+	if n >= 2 {
+		n--
+		println(n)
+	}
+	fmt.Println(n)
+}
+```
+
+阶乘问题：
+
+```go
+package main
+
+import "fmt"
+
+func factorial(n int) int {
+	if n < 1 {
+		fmt.Println("n值有误")
+		return 0
+	}
+	if n== 1 {
+		return 1
+    }else{
+		return n * factorial(n-1)
+	}
+	
+}
+```
+#### 20.6.2 递归遵循的原则
+
+1. 执行一个函数时，就创建一个新的受保护的独立空间（函数栈）
+2. 函数的局部变量是独立的，不会相互影响。如果希望不同的函数使用同一个变量，可以使用引用传递或者全局变量。
+3. 递归必须向退出递归的条件逼近，否则就是死循环
+4. 当一个函数执行完毕或者return时，就会返回。遵循谁调用就将结果返回给谁，同时当函数返回时，其本身就会被销毁。
+
+#### 20.6.3 迷宫问题
+
+![img](./pic/img_2.png)
+
+说明：
+1. i位置判断是否可以上下左右移动，直至i位置为end位置
+
+代码实现：
+```go
+package main
+
+import "fmt"
+
+//定义一个二维数组模拟迷宫
+var (
+	sheet = [][]bool{
+		[]bool{true, true, true, true, true},
+		[]bool{true, true, true, true, true},
+		[]bool{false, false, true, true, true},
+		[]bool{true, true, true, true, true},
+		[]bool{true, true, true, true, true},
+		[]bool{true, true, true, true, true},
+	}
+)
+
+func main() {
+	process(sheet, []int{0, 0}, []int{5, 4}, [][]int{[]int{0, 0}})
+}
+
+//走迷宫（sheet 迷宫，start 开始坐标）
+func process(sheet [][]bool, start, end []int, trace [][]int) {
+	if end[0] == start[0] && end[1] == start[1] {
+		fmt.Println(trace)
+		return
+	}
+	//右走
+	if start[1]+1 < len(sheet[start[0]]) && sheet[start[0]][start[1]+1] && isValid([]int{start[0], start[1] + 1}, trace) {
+		//traceTmp := trace
+		trace = append(trace, []int{start[0], start[1] + 1})
+		process(sheet, []int{start[0], start[1] + 1}, end, trace)
+		trace = trace[0 : len(trace)-1]
+	}
+	//下走
+	if start[0]+1 < len(sheet) && sheet[start[0]+1][start[1]] && isValid([]int{start[0] + 1, start[1]}, trace) {
+		trace = append(trace, []int{start[0] + 1, start[1]})
+		process(sheet, []int{start[0] + 1, start[1]}, end, trace)
+		trace = trace[0 : len(trace)-1]
+	}
+	//上走
+	if start[0]-1 >= 0 && sheet[start[0]-1][start[1]] && isValid([]int{start[0] - 1, start[1]}, trace) {
+		trace = append(trace, []int{start[0] - 1, start[1]})
+		process(sheet, []int{start[0] - 1, start[1]}, end, trace)
+		trace = trace[0 : len(trace)-1]
+	}
+
+	//左走
+	if start[1]-1 >= 0 && sheet[start[0]][start[1]-1] && isValid([]int{start[0], start[1] - 1}, trace) {
+		trace = append(trace, []int{start[0], start[1] - 1})
+		process(sheet, []int{start[0], start[1] - 1}, end, trace)
+		trace = trace[0 : len(trace)-1]
+	}
+}
+
+//判断是否走过的格子
+func isValid(point []int, trace [][]int) bool {
+	flag := true
+	for _, arrVal := range trace {
+		if arrVal[0] == point[0] && arrVal[1] == point[1] {
+			flag = false
+			break
+		}
+	}
+	return flag
+}
+
+```
+
+
+
+
+
+
+
+
+
 
 
 
